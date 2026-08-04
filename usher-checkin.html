@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-In — World Shakers Assembly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #12213E;
+      --gold: #F0A93D;
+      --coral: #E8613F;
+      --cream: #FBF7F0;
+      --leaf: #4C7A4E;
+      --line: rgba(18,33,62,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--navy); line-height: 1.55; }
+    h1 { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 2rem; }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 24px; }
+    .card { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 32px; box-shadow: 0 4px 12px rgba(18,33,62,0.08); }
+    
+    h1 { margin-bottom: 24px; text-align: center; }
+    .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 28px; }
+    
+    input { width: 100%; padding: 16px; border: 2px solid var(--line); border-radius: 10px; font-size: 1.1rem; font-family: 'Sora', sans-serif; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 16px; text-align: center; }
+    input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+    
+    .btn { width: 100%; padding: 16px; background: linear-gradient(90deg, var(--gold), var(--coral)); color: var(--navy); border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; font-family: 'Inter'; transition: transform 0.15s ease; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    
+    .message { padding: 16px; border-radius: 10px; margin-top: 20px; font-weight: 600; text-align: center; display: none; }
+    .success { background: rgba(76, 122, 78, 0.1); color: var(--leaf); border: 1px solid rgba(76, 122, 78, 0.3); }
+    .error { background: rgba(232, 97, 63, 0.1); color: var(--coral); border: 1px solid rgba(232, 97, 63, 0.3); }
+    
+    .counter { text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
+    .counter-num { font-size: 2rem; font-family: 'Sora'; font-weight: 800; color: var(--gold); }
+    .counter-label { color: #666; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <h1>✓ Check In</h1>
+    <p class="subtitle">Enter your attendance number</p>
+    
+    <input 
+      type="text" 
+      id="attendance-number" 
+      placeholder="e.g., 047" 
+      autocomplete="off"
+      inputmode="numeric"
+      maxlength="3"
+    >
+    
+    <button class="btn" id="check-in-btn">Mark Present</button>
+    
+    <div class="message success" id="success-msg">✓ Thank you! You're checked in!</div>
+    <div class="message error" id="error-msg">Number not found. Please try again.</div>
+    
+    <div class="counter">
+      <div class="counter-num" id="present-count">0</div>
+      <div class="counter-label">Members checked in today</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let presentCount = 0;
+
+// Load count on page load
+async function loadPresentCount() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const { count, error } = await supabaseClient
+      .from('attendance_records')
+      .select('*', { count: 'exact', head: true })
+      .eq('attendance_status', 'present')
+      .gte('marked_at', today);
+    
+    if (!error && count) {
+      presentCount = count;
+      document.getElementById('present-count').textContent = presentCount;
+    }
+  } catch (err) {
+    console.error('Error loading count:', err);
+  }
+}
+
+document.getElementById('check-in-btn').addEventListener('click', async () => {
+  const number = document.getElementById('attendance-number').value.trim();
+  const successMsg = document.getElementById('success-msg');
+  const errorMsg = document.getElementById('error-msg');
+  const btn = document.getElementById('check-in-btn');
+  
+  successMsg.style.display = 'none';
+  errorMsg.style.display = 'none';
+  
+  if (!number) {
+    errorMsg.textContent = 'Please enter your number';
+    errorMsg.style.display = 'block';
+    return;
+  }
+  
+  btn.disabled = true;
+  
+  try {
+    // Find member with this number
+    const { data: attendance, error } = await supabaseClient
+      .from('attendance_numbers')
+      .select('member_id, members(full_name)')
+      .eq('unique_number', number)
+      .single();
+    
+    if (error || !attendance) {
+      errorMsg.style.display = 'block';
+      btn.disabled = false;
+      return;
+    }
+    
+    // Mark as present
+    await supabaseClient.from('attendance_records').insert({
+      member_id: attendance.member_id,
+      unique_number: number,
+      attendance_status: 'present',
+      marked_at: new Date().toISOString()
+    });
+    
+    successMsg.textContent = `✓ Welcome, ${attendance.members.full_name}!`;
+    successMsg.style.display = 'block';
+    document.getElementById('attendance-number').value = '';
+    presentCount++;
+    document.getElementById('present-count').textContent = presentCount;
+    btn.disabled = false;
+  } catch (err) {
+    console.error('Error:', err);
+    errorMsg.textContent = 'Error checking in. Please try again.';
+    errorMsg.style.display = 'block';
+    btn.disabled = false;
+  }
+});
+
+// Auto-focus on input
+document.getElementById('attendance-number').focus();
+
+// Load count on page load
+document.addEventListener('DOMContentLoaded', loadPresentCount);
+</script>
+
+</body>
+</html>

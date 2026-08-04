@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief Protocol Panel — World Shakers Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#12213E; --navy-deep:#0B1730; --gold:#F0A93D; --coral:#E8613F;
+  --cream:#FBF7F0; --leaf:#4C7A4E; --ink:#1B2333; --line: rgba(18,33,62,0.12);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--cream); line-height:1.55;}
+h1,h2,h3{font-family:'Sora', sans-serif; font-weight:800; letter-spacing:-0.02em;}
+.mono{font-family:'Space Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; font-size:0.75rem;}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+
+.dash-shell{display:flex; min-height:100vh;}
+.dash-sidebar{
+  width:260px; flex-shrink:0; background:var(--navy-deep); color:var(--cream);
+  padding:28px 20px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Sora'; font-weight:800; font-size:1.05rem;}
+.brand .mark{width:40px; height:40px; border-radius:8px; object-fit:contain;}
+.dash-sidebar .brand{color:var(--cream); font-size:0.98rem; margin-bottom:36px;}
+.dash-nav{display:flex; flex-direction:column; gap:4px; flex:1;}
+.dash-nav a{
+  display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px;
+  font-size:0.9rem; font-weight:600; color:rgba(251,247,240,0.75); transition:background .15s ease, color .15s ease;
+  cursor:pointer;
+}
+.dash-nav a .ic{width:20px; text-align:center; flex-shrink:0;}
+.dash-nav a:hover{background:rgba(251,247,240,0.06); color:var(--cream);}
+.dash-nav a.active{background:linear-gradient(90deg,var(--gold),var(--coral)); color:var(--navy-deep);}
+.dash-logout{margin-top:20px; padding-top:20px; border-top:1px solid rgba(251,247,240,0.1);}
+
+.dash-main{flex:1; min-width:0;}
+.dash-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:20px 32px; border-bottom:1px solid var(--line); background:var(--cream);
+  position:sticky; top:0; z-index:10;
+}
+.dash-menu-toggle{display:none; background:none; border:none; cursor:pointer; flex-direction:column; gap:4px;}
+.dash-menu-toggle span{width:22px; height:2px; background:var(--navy);}
+.dash-content{padding:32px;}
+
+.page-head{margin-bottom:24px;}
+.page-head h1{font-size:1.6rem; margin-bottom:6px;}
+.page-head p{color:rgba(27,35,51,0.6); font-size:0.92rem;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.loading-spin{
+  width:34px; height:34px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--coral);
+  animation:spin 0.8s linear infinite; margin:60px auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.empty-state, .denied-state{
+  background:white; border:1px dashed var(--line); border-radius:16px; padding:40px;
+  text-align:center; color:rgba(27,35,51,0.55);
+}
+.denied-state{border-color:var(--coral); color:var(--coral);}
+
+.card{background:white; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:24px;}
+.card h2{font-size:1.2rem; margin-bottom:12px;}
+.card p{color:#666; margin-bottom:20px; font-size:0.9rem;}
+
+.btn{padding:12px 24px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:0.9rem; transition:all .15s ease;}
+.btn-primary{background:linear-gradient(90deg, var(--gold), var(--coral)); color:var(--navy-deep);}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 4px 12px rgba(232,97,63,0.2);}
+.btn-secondary{background:var(--navy); color:white;}
+.btn-secondary:hover{background:var(--navy-deep);}
+.btn-danger{background:rgba(232,97,63,0.1); color:var(--coral);}
+.btn-danger:hover{background:rgba(232,97,63,0.2);}
+.btn:disabled{opacity:0.6; cursor:not-allowed;}
+
+.form-group{margin-bottom:20px;}
+.form-group label{display:block; font-weight:600; margin-bottom:6px; font-size:0.9rem;}
+.form-group input, .form-group textarea, .form-group select{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+  font-family:'Inter', sans-serif; font-size:0.9rem;
+}
+.form-group textarea{resize:vertical; min-height:100px;}
+.form-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:600px){.form-row{grid-template-columns:1fr;}}
+
+.table-wrapper{overflow-x:auto; margin-top:20px;}
+.table{width:100%; border-collapse:collapse; font-size:0.9rem;}
+.table thead tr{border-bottom:2px solid var(--navy);}
+.table th{padding:12px; text-align:left; font-weight:700; background:rgba(240,169,61,0.05);}
+.table td{padding:12px; border-bottom:1px solid var(--line);}
+.table tr:hover{background:rgba(240,169,61,0.03);}
+
+.badge{display:inline-block; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:700; text-transform:uppercase;}
+.badge-success{background:rgba(76,122,78,0.1); color:var(--leaf);}
+.badge-warning{background:rgba(240,169,61,0.1); color:#E68F00;}
+.badge-info{background:rgba(18,33,62,0.1); color:var(--navy);}
+.badge-danger{background:rgba(232,97,63,0.12); color:var(--coral);}
+
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:16px; margin-bottom:24px;}
+.stat-box{background:white; border:1px solid var(--line); border-radius:14px; padding:20px;}
+.stat-box .stat-label{font-size:0.82rem; color:#666; margin-bottom:6px;}
+.stat-box .stat-value{font-size:1.6rem; font-weight:800; color:var(--navy);}
+.stat-box.accent-gold .stat-value{color:var(--gold);}
+.stat-box.accent-coral .stat-value{color:var(--coral);}
+.stat-box.accent-leaf .stat-value{color:var(--leaf);}
+
+.vip-card{border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;}
+.vip-card .info strong{display:block; font-size:1rem; margin-bottom:4px;}
+.vip-card .info span{color:#666; font-size:0.85rem;}
+.vip-card .actions{display:flex; gap:8px; flex-wrap:wrap;}
+
+@media (max-width:820px){
+  .dash-sidebar{position:fixed; left:-280px; top:0; bottom:0; z-index:100; transition:left .2s ease; width:250px;}
+  .dash-sidebar.open{left:0;}
+  .dash-menu-toggle{display:flex;}
+  .dash-content{padding:22px;}
+  .dash-topbar{padding:16px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <div class="brand"><img src="assets/logo.png" alt="World Shakers Assembly logo" class="mark" onerror="this.style.display='none'"> World Shakers Assembly</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html"><span class="ic">🏠</span> Back to Dashboard</a>
+      <a class="nav-tab active" data-tab="overview" style="margin-top:12px;"><span class="ic">📊</span> Overview</a>
+      <a class="nav-tab" data-tab="vip"><span class="ic">👑</span> VIP List</a>
+      <a class="nav-tab" data-tab="assignments"><span class="ic">🧭</span> Protocol Assignments</a>
+      <a class="nav-tab" data-tab="team"><span class="ic">🧑‍🤝‍🧑</span> Protocol Team</a>
+      <a class="nav-tab" data-tab="attendance"><span class="ic">📋</span> Attendance</a>
+      <a class="nav-tab" data-tab="reports"><span class="ic">📊</span> Reports</a>
+      <a class="nav-tab" data-tab="requests"><span class="ic">✅</span> Requests</a>
+    </nav>
+    <div class="dash-logout">
+      <a href="#" id="logout-btn"><span class="ic">↩</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <button class="dash-menu-toggle" id="dash-menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <div class="brand" style="font-size:0.95rem;">Chief Protocol Panel</div>
+      <div></div>
+    </div>
+
+    <div class="dash-content">
+      <div id="cp-loading">
+        <div class="loading-spin"></div>
+      </div>
+
+      <div id="cp-denied" style="display:none;">
+        <div class="denied-state">
+          <strong>Chief Protocol access only.</strong><br>
+          Your account isn't assigned this role. Ask the General Overseer to assign you in the Admin Panel's Leadership Roles tab.
+        </div>
+      </div>
+
+      <div id="cp-app" style="display:none;">
+
+        <!-- TAB: OVERVIEW -->
+        <div id="overview-tab" class="tab-content active">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Protocol Ministry</span>
+            <h1>📊 Ministry Overview</h1>
+            <p>Quick snapshot of your protocol operations and team.</p>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-box accent-coral">
+              <div class="stat-label">VIPs Registered</div>
+              <div class="stat-value" id="stat-vips">—</div>
+            </div>
+            <div class="stat-box accent-gold">
+              <div class="stat-label">Active Protocol Members</div>
+              <div class="stat-value" id="stat-members">—</div>
+            </div>
+            <div class="stat-box accent-leaf">
+              <div class="stat-label">Pending Approvals</div>
+              <div class="stat-value" id="stat-pending">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Assignments This Week</div>
+              <div class="stat-value" id="stat-weekly-assignments">—</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Recent Activity</h2>
+            <div id="recent-activity" style="color:#666;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- TAB: VIP LIST -->
+        <div id="vip-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Protocol Ministry</span>
+            <h1>👑 VIP List</h1>
+            <p>Distinguished guests and important visitors to show special protocol care during their visit.</p>
+          </div>
+
+          <div class="card">
+            <h2>Add VIP</h2>
+            <form id="vip-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" id="vip-name" required placeholder="e.g., Bishop Johnson">
+                </div>
+                <div class="form-group">
+                  <label>Title / Position</label>
+                  <input type="text" id="vip-title" required placeholder="e.g., Visiting Archbishop">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Organization / Church</label>
+                  <input type="text" id="vip-organization" placeholder="e.g., Grace Cathedral">
+                </div>
+                <div class="form-group">
+                  <label>Contact Email</label>
+                  <input type="email" id="vip-email" placeholder="bishop@gracecathedral.org">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Special Notes</label>
+                <textarea id="vip-notes" placeholder="Preferences, dietary restrictions, accessibility needs, etc."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">+ Add VIP</button>
+              <div id="vip-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>VIP Directory</h2>
+            <div class="form-group" style="max-width:320px;">
+              <input type="text" id="vip-search" placeholder="Search by name or organization...">
+            </div>
+            <div id="vip-list">
+              <div class="loading-spin"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: PROTOCOL ASSIGNMENTS -->
+        <div id="assignments-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Protocol Ministry</span>
+            <h1>🧭 Protocol Assignments</h1>
+            <p>Assign protocol members to special events and visitor care duties.</p>
+          </div>
+
+          <div class="card">
+            <h2>New Assignment</h2>
+            <form id="assign-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Event</label>
+                  <select id="assign-event" required>
+                    <option value="">Loading events...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Protocol Member</label>
+                  <select id="assign-member" required>
+                    <option value="">Loading members...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Duty Type</label>
+                  <select id="assign-duty" required>
+                    <option value="">Select duty</option>
+                    <option value="Reception">Reception & Welcome</option>
+                    <option value="VIP Escort">VIP Escort</option>
+                    <option value="Seating">VIP Seating Arrangement</option>
+                    <option value="Photography">Protocol Photography</option>
+                    <option value="Guest Relations">Guest Relations</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>VIP Guest (if applicable)</label>
+                  <select id="assign-vip">
+                    <option value="">No specific VIP</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Instructions</label>
+                <textarea id="assign-notes" placeholder="Any special instructions for this assignment"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">+ Assign Duty</button>
+              <div id="assign-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>All Assignments</h2>
+            <div class="form-group" style="max-width:320px;">
+              <label>Filter by Event</label>
+              <select id="assign-filter-event">
+                <option value="">All events</option>
+              </select>
+            </div>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Event Date</th><th>Event</th><th>Member</th><th>Duty Type</th><th>VIP</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="assignments-tbody">
+                  <tr><td colspan="7" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: PROTOCOL TEAM -->
+        <div id="team-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Protocol Ministry</span>
+            <h1>🧑‍🤝‍🧑 Protocol Team</h1>
+            <p>All members assigned to the Protocol Ministry. Manage in the Admin Panel's Leadership Roles tab.</p>
+          </div>
+
+          <div class="card">
+            <div class="form-group"><input type="text" id="team-search" placeholder="Search by name or email..."></div>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Full Name</th><th>Email</th><th>Phone</th><th>Assignments</th><th>Status</th></tr></thead>
+                <tbody id="team-tbody">
+                  <tr><td colspan="5" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: ATTENDANCE -->
+        <div id="attendance-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Protocol Ministry</span>
+            <h1>📋 Attendance & Participation</h1>
+            <p>Track protocol member attendance at events and duties.</p>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-box accent-leaf">
+              <div class="stat-label">Present This Week</div>
+              <div class="stat-value" id="att-present-week">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Absent This Week</div>
+              <div class="stat-value" id="att-absent-week">—</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Mark Attendance</h2>
+            <form id="attendance-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Event</label>
+                  <select id="att-event" required>
+                    <option value="">Loading events...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Member</label>
+                  <select id="att-member" required>
+                    <option value="">Loading members...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Status</label>
+                  <select id="att-status">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Excused">Excused</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Mark Attendance</button>
+              <div id="att-status-msg" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Attendance History</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Date</th><th>Event</th><th>Member</th><th>Status</th></tr></thead>
+                <tbody id="att-history-tbody">
+                  <tr><td colspan="4" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: REPORTS -->
+        <div id="reports-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Protocol Ministry</span>
+            <h1>📊 Reports & Analytics</h1>
+            <p>Performance metrics and insights about your protocol ministry.</p>
+          </div>
+
+          <div class="card">
+            <h2>Generate Report</h2>
+            <form id="report-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Report Type</label>
+                  <select id="report-type">
+                    <option value="attendance">Attendance Report</option>
+                    <option value="assignments">Assignment Summary</option>
+                    <option value="vip">VIP Visit Log</option>
+                    <option value="team-performance">Team Performance</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Date Range</label>
+                  <select id="report-range">
+                    <option value="this-week">This Week</option>
+                    <option value="this-month">This Month</option>
+                    <option value="this-quarter">This Quarter</option>
+                    <option value="this-year">This Year</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <button type="submit" class="btn btn-primary" id="generate-report-btn">📄 Generate Report</button>
+                <button type="button" class="btn btn-secondary" id="download-pdf-btn" style="display:none;">⬇ Download PDF</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card" id="report-output" style="display:none;">
+            <div id="report-content">Loading...</div>
+          </div>
+        </div>
+
+        <!-- TAB: REQUESTS -->
+        <div id="requests-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Protocol Ministry</span>
+            <h1>✅ Team Requests & Approvals</h1>
+            <p>Requests from your protocol members. Review and forward to the General Overseer if needed.</p>
+          </div>
+
+          <div class="card">
+            <h2>Pending Member Requests</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Date</th><th>Member</th><th>Type</th><th>Description</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="team-requests-tbody">
+                  <tr><td colspan="6" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Send Request to G.O.</h2>
+            <form id="request-form">
+              <div class="form-group">
+                <label>Request Type</label>
+                <select id="request-type">
+                  <option value="Budget Request">Budget Request</option>
+                  <option value="Equipment">Equipment / Supplies</option>
+                  <option value="Training">Training / Development</option>
+                  <option value="Policy">Policy Change</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea id="request-description" required placeholder="Explain your request to the General Overseer..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Send Request</button>
+              <div id="request-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUserId = null;
+  let myFullName = null;
+  let myLeadershipRole = null;
+  let protocolMembers = [];
+  let vipList = [];
+  let assignments = [];
+  let eventsById = {};
+  let teamRequests = [];
+  let myRequests = [];
+  let attendanceRecords = [];
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+  function fmtDate(d){ return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }); }
+  function fmtDateTime(d){ return d ? new Date(d).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'; }
+
+  async function logAudit(action, details){
+    try {
+      await supabaseClient.from('audit_log').insert([{ actor_id: currentUserId, actor_name: myFullName, action, details }]);
+    } catch(err){ console.error('Audit log failed:', err); }
+  }
+
+  function initSidebarToggle(){
+    const toggle = document.getElementById('dash-menu-toggle');
+    const sidebar = document.getElementById('dash-sidebar');
+    if(toggle && sidebar) toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  }
+
+  function initTabNavigation(){
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabName = tab.getAttribute('data-tab');
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        const sidebar = document.getElementById('dash-sidebar');
+        if(sidebar) sidebar.classList.remove('open');
+      });
+    });
+  }
+
+  function initLogout(){
+    const logoutBtn = document.getElementById('logout-btn');
+    if(!logoutBtn) return;
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
+  }
+
+  // ---------- EVENTS (lookup only) ----------
+  async function loadEvents(){
+    const { data, error } = await supabaseClient.from('events').select('*');
+    if(error){ console.error('Error loading events:', error); return; }
+    (data || []).forEach(e => eventsById[e.id] = e);
+    populateEventSelects();
+  }
+
+  function eventLabel(id){ return eventsById[id]?.title || '—'; }
+  function eventDateOf(id){ return eventsById[id] ? fmtDate(eventsById[id].event_date) : '—'; }
+
+  function populateEventSelects(){
+    const events = Object.values(eventsById);
+    const html = events.map(e => `<option value="${e.id}">${escapeHTML(e.title)} — ${fmtDate(e.event_date)}</option>`).join('');
+    document.getElementById('assign-event').innerHTML = html || '<option value="">No events</option>';
+    document.getElementById('assign-filter-event').innerHTML = '<option value="">All events</option>' + html;
+    document.getElementById('att-event').innerHTML = html || '<option value="">No events</option>';
+  }
+
+  // ---------- VIP MANAGEMENT ----------
+  async function loadVIPs(){
+    const { data, error } = await supabaseClient
+      .from('protocol_vips')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if(error){ console.error('Error loading VIPs:', error); return; }
+    vipList = data || [];
+    renderVIPList();
+    updateVIPSelect();
+    updateStats();
+  }
+
+  function renderVIPList(){
+    const container = document.getElementById('vip-list');
+    const searchTerm = (document.getElementById('vip-search')?.value || '').toLowerCase();
+    const filtered = vipList.filter(v => 
+      v.full_name.toLowerCase().includes(searchTerm) ||
+      (v.organization || '').toLowerCase().includes(searchTerm)
+    );
+
+    if(!filtered.length){
+      container.innerHTML = '<div class="empty-state">No VIPs registered yet.</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(v => `
+      <div class="vip-card">
+        <div class="info">
+          <strong>${escapeHTML(v.full_name)}</strong>
+          <span>${escapeHTML(v.title || '—')} ${v.organization ? '· ' + escapeHTML(v.organization) : ''}</span>
+          ${v.special_notes ? '<span style="display:block; margin-top:6px;">📝 ' + escapeHTML(v.special_notes) + '</span>' : ''}
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.85rem;" onclick="deleteVIP('${v.id}')">Remove</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function updateVIPSelect(){
+    const sel = document.getElementById('assign-vip');
+    const html = vipList.map(v => `<option value="${v.id}">${escapeHTML(v.full_name)} (${escapeHTML(v.title || 'Guest')})</option>`).join('');
+    sel.innerHTML = '<option value="">No specific VIP</option>' + html;
+  }
+
+  async function deleteVIP(id){
+    if(!confirm('Remove this VIP from the list?')) return;
+    try {
+      const { error } = await supabaseClient.from('protocol_vips').delete().eq('id', id);
+      if(error) throw error;
+      await logAudit('vip_removed', { vip_id: id });
+      await loadVIPs();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  function initVIPForm(){
+    document.getElementById('vip-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('vip-status');
+      const payload = {
+        full_name: document.getElementById('vip-name').value,
+        title: document.getElementById('vip-title').value,
+        organization: document.getElementById('vip-organization').value,
+        email: document.getElementById('vip-email').value,
+        special_notes: document.getElementById('vip-notes').value,
+        added_by: currentUserId
+      };
+      try {
+        status.textContent = 'Adding VIP...';
+        const { error } = await supabaseClient.from('protocol_vips').insert([payload]);
+        if(error) throw error;
+        await logAudit('vip_added', { name: payload.full_name });
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ VIP added!</span>';
+        e.target.reset();
+        await loadVIPs();
+        setTimeout(() => { status.textContent = ''; }, 2500);
+      } catch(err){ status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+
+    document.getElementById('vip-search').addEventListener('input', renderVIPList);
+  }
+
+  // ---------- PROTOCOL MEMBERS ----------
+  async function loadProtocolMembers(){
+    const { data, error } = await supabaseClient
+      .from('members')
+      .select('id, full_name, email, phone, created_at')
+      .eq('leadership_role', 'protocol_member')
+      .order('full_name');
+    if(error){ console.error('Error loading members:', error); return; }
+    protocolMembers = data || [];
+    renderTeam();
+    populateMemberSelects();
+    updateStats();
+  }
+
+  function renderTeam(){
+    const searchTerm = (document.getElementById('team-search')?.value || '').toLowerCase();
+    const filtered = protocolMembers.filter(m =>
+      m.full_name.toLowerCase().includes(searchTerm) ||
+      (m.email || '').toLowerCase().includes(searchTerm)
+    );
+
+    const tbody = document.getElementById('team-tbody');
+    tbody.innerHTML = filtered.length ? filtered.map(m => {
+      const memberAssignments = assignments.filter(a => a.member_id === m.id);
+      return `
+        <tr>
+          <td><strong>${escapeHTML(m.full_name)}</strong></td>
+          <td>${escapeHTML(m.email || '—')}</td>
+          <td>${escapeHTML(m.phone || '—')}</td>
+          <td>${memberAssignments.length} duty(ies)</td>
+          <td><span class="badge badge-success">Active</span></td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="5" style="text-align:center; color:#999;">No protocol members yet.</td></tr>';
+  }
+
+  function populateMemberSelects(){
+    const html = protocolMembers.map(m => `<option value="${m.id}">${escapeHTML(m.full_name)}</option>`).join('');
+    document.getElementById('assign-member').innerHTML = html || '<option value="">No members</option>';
+    document.getElementById('att-member').innerHTML = html || '<option value="">No members</option>';
+  }
+
+  document.getElementById('team-search')?.addEventListener('input', renderTeam);
+
+  // ---------- ASSIGNMENTS ----------
+  async function loadAssignments(){
+    const { data, error } = await supabaseClient
+      .from('protocol_assignments')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if(error){ console.error('Error loading assignments:', error); return; }
+    assignments = data || [];
+    renderAssignments();
+    updateStats();
+  }
+
+  function renderAssignments(){
+    const filterEventId = document.getElementById('assign-filter-event')?.value || '';
+    const filtered = filterEventId ? assignments.filter(a => a.event_id === filterEventId) : assignments;
+
+    const tbody = document.getElementById('assignments-tbody');
+    tbody.innerHTML = filtered.length ? filtered.map(a => {
+      const member = protocolMembers.find(m => m.id === a.member_id);
+      const badgeClass = a.status === 'completed' ? 'badge-success' : a.status === 'declined' ? 'badge-danger' : a.status === 'confirmed' ? 'badge-info' : 'badge-warning';
+      const vipName = a.vip_id && vipList.find(v => v.id === a.vip_id) ? vipList.find(v => v.id === a.vip_id).full_name : '—';
+      return `
+        <tr>
+          <td>${eventDateOf(a.event_id)}</td>
+          <td>${escapeHTML(eventLabel(a.event_id))}</td>
+          <td>${escapeHTML(member?.full_name || '—')}</td>
+          <td>${escapeHTML(a.duty_type || '—')}</td>
+          <td>${escapeHTML(vipName)}</td>
+          <td><span class="badge ${badgeClass}">${escapeHTML(a.status)}</span></td>
+          <td>
+            <button class="btn" style="padding:6px 10px; font-size:0.75rem; background:rgba(232,97,63,0.1); color:var(--coral);" onclick="deleteAssignment('${a.id}')">×</button>
+          </td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="7" style="text-align:center; color:#999;">No assignments yet.</td></tr>';
+  }
+
+  async function deleteAssignment(id){
+    if(!confirm('Remove this assignment?')) return;
+    try {
+      const { error } = await supabaseClient.from('protocol_assignments').delete().eq('id', id);
+      if(error) throw error;
+      await logAudit('protocol_assignment_deleted', { id });
+      await loadAssignments();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  function initAssignForm(){
+    document.getElementById('assign-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('assign-status');
+      const payload = {
+        event_id: document.getElementById('assign-event').value,
+        member_id: document.getElementById('assign-member').value,
+        duty_type: document.getElementById('assign-duty').value,
+        vip_id: document.getElementById('assign-vip').value || null,
+        instructions: document.getElementById('assign-notes').value,
+        assigned_by: currentUserId,
+        status: 'assigned'
+      };
+      try {
+        status.textContent = 'Assigning...';
+        const { error } = await supabaseClient.from('protocol_assignments').insert([payload]);
+        if(error) throw error;
+        await logAudit('protocol_assignment_created', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Assignment created!</span>';
+        e.target.reset();
+        await loadAssignments();
+        setTimeout(() => { status.textContent = ''; }, 2500);
+      } catch(err){ status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+
+    document.getElementById('assign-filter-event')?.addEventListener('change', renderAssignments);
+  }
+
+  // ---------- ATTENDANCE ----------
+  async function loadAttendance(){
+    const { data, error } = await supabaseClient
+      .from('protocol_attendance')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if(error){ console.error('Error loading attendance:', error); return; }
+    attendanceRecords = data || [];
+    renderAttendanceHistory();
+    updateStats();
+  }
+
+  function renderAttendanceHistory(){
+    const tbody = document.getElementById('att-history-tbody');
+    tbody.innerHTML = attendanceRecords.slice(0, 50).map(r => {
+      const member = protocolMembers.find(m => m.id === r.member_id);
+      const badgeClass = r.status === 'Present' ? 'badge-success' : r.status === 'Excused' ? 'badge-warning' : 'badge-danger';
+      return `
+        <tr>
+          <td>${fmtDate(r.created_at)}</td>
+          <td>${escapeHTML(eventLabel(r.event_id))}</td>
+          <td>${escapeHTML(member?.full_name || '—')}</td>
+          <td><span class="badge ${badgeClass}">${escapeHTML(r.status)}</span></td>
+        </tr>
+      `;
+    }).join('') || '<tr><td colspan="4" style="text-align:center; color:#999;">No attendance records yet.</td></tr>';
+  }
+
+  function initAttendanceForm(){
+    document.getElementById('attendance-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('att-status-msg');
+      const payload = {
+        event_id: document.getElementById('att-event').value,
+        member_id: document.getElementById('att-member').value,
+        status: document.getElementById('att-status').value,
+        marked_by: currentUserId
+      };
+      try {
+        status.textContent = 'Marking...';
+        const { error } = await supabaseClient.from('protocol_attendance').insert([payload]);
+        if(error) throw error;
+        await logAudit('protocol_attendance_marked', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Attendance marked!</span>';
+        await loadAttendance();
+        setTimeout(() => { status.textContent = ''; }, 2500);
+      } catch(err){ status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+  }
+
+  // ---------- REQUESTS ----------
+  async function loadTeamRequests(){
+    const { data, error } = await supabaseClient
+      .from('leadership_requests')
+      .select('*')
+      .eq('department', 'Protocol Ministry')
+      .eq('status', 'pending_supervisor')
+      .order('created_at', { ascending: false });
+    if(error){ console.error('Error loading team requests:', error); return; }
+    teamRequests = data || [];
+    renderTeamRequests();
+  }
+
+  function renderTeamRequests(){
+    const tbody = document.getElementById('team-requests-tbody');
+    tbody.innerHTML = teamRequests.length ? teamRequests.map(r => {
+      return `
+        <tr>
+          <td>${fmtDate(r.created_at)}</td>
+          <td>${escapeHTML(r.requested_by || '—')}</td>
+          <td>${escapeHTML(r.request_type || '—')}</td>
+          <td>${escapeHTML(r.description)}</td>
+          <td><span class="badge badge-warning">Pending</span></td>
+          <td>
+            <button class="btn" style="padding:6px 12px; font-size:0.75rem;" onclick="approveRequest('${r.id}')">Approve</button>
+            <button class="btn btn-danger" style="padding:6px 12px; font-size:0.75rem;" onclick="rejectRequest('${r.id}')">Reject</button>
+          </td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="6" style="text-align:center; color:#999;">No pending member requests.</td></tr>';
+  }
+
+  async function approveRequest(id){
+    try {
+      const { error } = await supabaseClient.from('leadership_requests').update({ status: 'approved' }).eq('id', id);
+      if(error) throw error;
+      await logAudit('request_approved_by_supervisor', { request_id: id });
+      await loadTeamRequests();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  async function rejectRequest(id){
+    try {
+      const { error } = await supabaseClient.from('leadership_requests').update({ status: 'rejected' }).eq('id', id);
+      if(error) throw error;
+      await logAudit('request_rejected_by_supervisor', { request_id: id });
+      await loadTeamRequests();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  function initRequestForm(){
+    document.getElementById('request-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('request-status');
+      const payload = {
+        requested_by: currentUserId,
+        department: 'Protocol Ministry',
+        request_type: document.getElementById('request-type').value,
+        description: document.getElementById('request-description').value,
+        status: 'pending'
+      };
+      try {
+        status.textContent = 'Sending...';
+        const { error } = await supabaseClient.from('leadership_requests').insert([payload]);
+        if(error) throw error;
+        await logAudit('approval_requested_by_chief', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Request sent to G.O.!</span>';
+        e.target.reset();
+        setTimeout(() => { status.textContent = ''; }, 2500);
+      } catch(err){ status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+  }
+
+  // ---------- STATS ----------
+  function updateStats(){
+    document.getElementById('stat-vips').textContent = vipList.length;
+    document.getElementById('stat-members').textContent = protocolMembers.length;
+
+    const pendingReqs = teamRequests.length;
+    document.getElementById('stat-pending').textContent = pendingReqs;
+
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+    const weekAssignments = assignments.filter(a => {
+      const aDate = eventsById[a.event_id]?.event_date;
+      if(!aDate) return false;
+      const d = new Date(aDate);
+      return d >= weekStart && d <= today;
+    });
+    document.getElementById('stat-weekly-assignments').textContent = weekAssignments.length;
+
+    const presentsThisWeek = attendanceRecords.filter(r => {
+      const d = new Date(r.created_at);
+      return d >= weekStart && d <= today && r.status === 'Present';
+    }).length;
+    document.getElementById('att-present-week').textContent = presentsThisWeek;
+
+    const absentsThisWeek = attendanceRecords.filter(r => {
+      const d = new Date(r.created_at);
+      return d >= weekStart && d <= today && r.status === 'Absent';
+    }).length;
+    document.getElementById('att-absent-week').textContent = absentsThisWeek;
+  }
+
+  // ---------- AUTH GATE & INIT ----------
+  document.addEventListener('DOMContentLoaded', async () => {
+    initSidebarToggle();
+    initLogout();
+    initTabNavigation();
+
+    const loadingEl = document.getElementById('cp-loading');
+    const deniedEl = document.getElementById('cp-denied');
+    const appEl = document.getElementById('cp-app');
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if(!session){ window.location.href = 'login.html'; return; }
+    currentUserId = session.user.id;
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('members')
+      .select('full_name, role, leadership_role')
+      .eq('id', session.user.id)
+      .single();
+
+    const { data: activeRoleRows } = await supabaseClient
+      .from('member_leadership_roles')
+      .select('leadership_role')
+      .eq('member_id', session.user.id)
+      .eq('is_active', true);
+    const activeRoles = [
+      profile ? profile.leadership_role : null,
+      ...((activeRoleRows || []).map(r => r.leadership_role))
+    ].filter(Boolean);
+
+    const authorized = profile && (
+      profile.role === 'admin' ||
+      activeRoles.includes('chief_protocol')
+    );
+
+    if(profileError || !authorized){
+      loadingEl.style.display = 'none';
+      deniedEl.style.display = 'block';
+      return;
+    }
+    myFullName = profile.full_name;
+    myLeadershipRole = profile.leadership_role;
+
+    loadingEl.style.display = 'none';
+    appEl.style.display = 'block';
+
+    await loadEvents();
+    await loadVIPs();
+    await loadProtocolMembers();
+    await loadAssignments();
+    await loadAttendance();
+    await loadTeamRequests();
+
+    initVIPForm();
+    initAssignForm();
+    initAttendanceForm();
+    initRequestForm();
+    updateStats();
+  });
+</script>
+</body>
+</html>

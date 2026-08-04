@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usher Panel — World Shakers Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#12213E; --navy-deep:#0B1730; --gold:#F0A93D; --coral:#E8613F;
+  --cream:#FBF7F0; --leaf:#4C7A4E; --ink:#1B2333; --line: rgba(18,33,62,0.12);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--cream); line-height:1.55;}
+h1,h2,h3{font-family:'Sora', sans-serif; font-weight:800; letter-spacing:-0.02em;}
+.mono{font-family:'Space Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; font-size:0.75rem;}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+
+.dash-shell{display:flex; min-height:100vh;}
+.dash-sidebar{
+  width:260px; flex-shrink:0; background:var(--navy-deep); color:var(--cream);
+  padding:28px 20px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Sora'; font-weight:800; font-size:1.05rem;}
+.brand .mark{width:40px; height:40px; border-radius:8px; object-fit:contain;}
+.dash-sidebar .brand{color:var(--cream); font-size:0.98rem; margin-bottom:36px;}
+.dash-nav{display:flex; flex-direction:column; gap:4px; flex:1;}
+.dash-nav a{
+  display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px;
+  font-size:0.9rem; font-weight:600; color:rgba(251,247,240,0.75); transition:background .15s ease, color .15s ease;
+  cursor:pointer;
+}
+.dash-nav a .ic{width:20px; text-align:center; flex-shrink:0;}
+.dash-nav a:hover{background:rgba(251,247,240,0.06); color:var(--cream);}
+.dash-nav a.active{background:linear-gradient(90deg,var(--gold),var(--coral)); color:var(--navy-deep);}
+.dash-logout{margin-top:20px; padding-top:20px; border-top:1px solid rgba(251,247,240,0.1);}
+
+.dash-main{flex:1; min-width:0;}
+.dash-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:20px 32px; border-bottom:1px solid var(--line); background:var(--cream);
+  position:sticky; top:0; z-index:10;
+}
+.dash-menu-toggle{display:none; background:none; border:none; cursor:pointer; flex-direction:column; gap:4px;}
+.dash-menu-toggle span{width:22px; height:2px; background:var(--navy);}
+.dash-content{padding:32px;}
+
+.page-head{margin-bottom:24px;}
+.page-head h1{font-size:1.6rem; margin-bottom:6px;}
+.page-head p{color:rgba(27,35,51,0.6); font-size:0.92rem;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.loading-spin{
+  width:34px; height:34px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--coral);
+  animation:spin 0.8s linear infinite; margin:60px auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.empty-state, .denied-state{
+  background:white; border:1px dashed var(--line); border-radius:16px; padding:40px;
+  text-align:center; color:rgba(27,35,51,0.55);
+}
+.denied-state{border-color:var(--coral); color:var(--coral);}
+
+.card{background:white; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:24px;}
+.card h2{font-size:1.2rem; margin-bottom:12px;}
+.card p{color:#666; margin-bottom:20px; font-size:0.9rem;}
+
+.btn{padding:12px 24px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:0.9rem; transition:all .15s ease;}
+.btn-primary{background:linear-gradient(90deg, var(--gold), var(--coral)); color:var(--navy-deep);}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 4px 12px rgba(232,97,63,0.2);}
+.btn-secondary{background:var(--navy); color:white;}
+.btn-secondary:hover{background:var(--navy-deep);}
+.btn:disabled{opacity:0.6; cursor:not-allowed;}
+
+.form-group{margin-bottom:20px;}
+.form-group label{display:block; font-weight:600; margin-bottom:6px; font-size:0.9rem;}
+.form-group input, .form-group textarea, .form-group select{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+  font-family:'Inter', sans-serif; font-size:0.9rem;
+}
+.form-group textarea{resize:vertical; min-height:100px;}
+
+.table-wrapper{overflow-x:auto; margin-top:20px;}
+.table{width:100%; border-collapse:collapse; font-size:0.9rem;}
+.table thead tr{border-bottom:2px solid var(--navy);}
+.table th{padding:12px; text-align:left; font-weight:700; background:rgba(240,169,61,0.05);}
+.table td{padding:12px; border-bottom:1px solid var(--line);}
+.table tr:hover{background:rgba(240,169,61,0.03);}
+
+.badge{display:inline-block; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:700; text-transform:uppercase;}
+.badge-success{background:rgba(76,122,78,0.1); color:var(--leaf);}
+.badge-warning{background:rgba(240,169,61,0.1); color:#E68F00;}
+.badge-info{background:rgba(18,33,62,0.1); color:var(--navy);}
+.badge-danger{background:rgba(232,97,63,0.12); color:var(--coral);}
+
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:16px; margin-bottom:24px;}
+.stat-box{background:white; border:1px solid var(--line); border-radius:14px; padding:20px;}
+.stat-box .stat-label{font-size:0.82rem; color:#666; margin-bottom:6px;}
+.stat-box .stat-value{font-size:1.6rem; font-weight:800; color:var(--navy);}
+.stat-box.accent-gold .stat-value{color:var(--gold);}
+.stat-box.accent-coral .stat-value{color:var(--coral);}
+.stat-box.accent-leaf .stat-value{color:var(--leaf);}
+
+.assignment-card{border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;}
+.assignment-card .info strong{display:block; font-size:1rem; margin-bottom:4px;}
+.assignment-card .info span{color:#666; font-size:0.85rem;}
+.assignment-actions{display:flex; gap:8px; flex-wrap:wrap;}
+
+@media (max-width:820px){
+  .dash-sidebar{position:fixed; left:-280px; top:0; bottom:0; z-index:100; transition:left .2s ease; width:250px;}
+  .dash-sidebar.open{left:0;}
+  .dash-menu-toggle{display:flex;}
+  .dash-content{padding:22px;}
+  .dash-topbar{padding:16px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <div class="brand"><img src="assets/logo.png" alt="World Shakers Assembly logo" class="mark" onerror="this.style.display='none'"> World Shakers Assembly</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html"><span class="ic">🏠</span> Back to Dashboard</a>
+      <a class="nav-tab active" data-tab="overview" style="margin-top:12px;"><span class="ic">📊</span> Overview</a>
+      <a class="nav-tab" data-tab="assignments"><span class="ic">🧭</span> My Assignments</a>
+      <a class="nav-tab" data-tab="duty"><span class="ic">⏱️</span> Duty Check-In</a>
+      <a class="nav-tab" data-tab="doorcheckin"><span class="ic">🚪</span> Door Check-In Kiosk</a>
+      <a class="nav-tab" data-tab="requests"><span class="ic">✅</span> My Requests</a>
+      <a class="nav-tab" data-tab="visitors"><span class="ic">👥</span> Visitor Recording</a>
+    </nav>
+    <div class="dash-logout">
+      <a href="#" id="logout-btn"><span class="ic">↩</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <button class="dash-menu-toggle" id="dash-menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <div class="brand" style="font-size:0.95rem;">Usher Panel</div>
+      <div></div>
+    </div>
+
+    <div class="dash-content">
+      <div id="us-loading">
+        <div class="loading-spin"></div>
+      </div>
+
+      <div id="us-denied" style="display:none;">
+        <div class="denied-state">
+          <strong>Usher access only.</strong><br>
+          Your account isn't assigned this role. Ask your Chief Usher or the General Overseer to assign you in the Admin Panel's Leadership Roles tab.
+        </div>
+      </div>
+
+      <div id="us-app" style="display:none;">
+
+        <!-- TAB: OVERVIEW -->
+        <div id="overview-tab" class="tab-content active">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Ushering Team</span>
+            <h1>📊 My Overview</h1>
+            <p>Your upcoming duties at a glance.</p>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-box accent-gold">
+              <div class="stat-label">Upcoming Assignments</div>
+              <div class="stat-value" id="stat-upcoming">—</div>
+            </div>
+            <div class="stat-box accent-leaf">
+              <div class="stat-label">Completed Assignments</div>
+              <div class="stat-value" id="stat-completed">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">My Pending Requests</div>
+              <div class="stat-value" id="stat-pending-requests">—</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Next Duty</h2>
+            <div id="next-duty-box" style="color:#666;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- TAB: MY ASSIGNMENTS -->
+        <div id="assignments-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Ushering Team</span>
+            <h1>🧭 My Assignments</h1>
+            <p>Stations you've been placed on by the Chief Usher. Confirm so they know you're set.</p>
+          </div>
+          <div id="assignments-list">
+            <div class="loading-spin"></div>
+          </div>
+        </div>
+
+        <!-- TAB: DUTY CHECK-IN -->
+        <div id="duty-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Ushering Team</span>
+            <h1>⏱️ Duty Check-In</h1>
+            <p>Clock yourself in when your shift starts, and out when it ends.</p>
+          </div>
+          <div class="card">
+            <div class="form-group">
+              <label>Assignment</label>
+              <select id="duty-assignment-select">
+                <option value="">Loading your assignments...</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary" id="clock-in-btn">Clock In</button>
+            <button type="button" class="btn btn-secondary" id="clock-out-btn" style="margin-left:10px;">Clock Out</button>
+            <div id="duty-status" style="margin-top:16px; color:#666;"></div>
+          </div>
+          <div class="card">
+            <h2>My Duty History</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Event</th><th>Station</th><th>Checked In</th><th>Checked Out</th></tr></thead>
+                <tbody id="my-duty-tbody">
+                  <tr><td colspan="4" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: DOOR CHECK-IN KIOSK -->
+        <div id="doorcheckin-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Ushering Team</span>
+            <h1>🚪 Door Check-In Kiosk</h1>
+            <p>Use this at the entrance to mark members present as they arrive.</p>
+          </div>
+          <div class="card">
+            <p>The door check-in tool runs as its own page so it can stay open on a tablet at the entrance all service long.</p>
+            <a href="usher-checkin.html" target="_blank" class="btn btn-primary">Open Check-In Kiosk ↗</a>
+          </div>
+        </div>
+
+        <!-- TAB: MY REQUESTS -->
+        <div id="requests-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Ushering Team</span>
+            <h1>✅ My Requests</h1>
+            <p>Send a request up to your Chief Usher / the General Overseer.</p>
+          </div>
+          <div class="card">
+            <h2>New Request</h2>
+            <form id="request-form">
+              <div class="form-group">
+                <label>Request Type</label>
+                <select id="request-type">
+                  <option value="Schedule Change">Schedule Change</option>
+                  <option value="Time Off">Time Off</option>
+                  <option value="Equipment / Supplies">Equipment / Supplies</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Description</label><textarea id="request-description" required placeholder="What do you need?"></textarea></div>
+              <button type="submit" class="btn btn-primary">Send Request</button>
+              <div id="request-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>My Request History</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Status</th></tr></thead>
+                <tbody id="requests-tbody">
+                  <tr><td colspan="4" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: VISITOR RECORDING (Stage 3) -->
+        <div id="visitors-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Ushering Team</span>
+            <h1>👥 Visitor Recording</h1>
+            <p>Record guest visitors to help with follow-ups and ministry growth tracking.</p>
+          </div>
+          <div class="card">
+            <h2>Record a New Visitor</h2>
+            <form id="visitor-form">
+              <div class="form-group">
+                <label>Visitor's Full Name *</label>
+                <input type="text" id="visitor-name" required placeholder="E.g., John Doe">
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" id="visitor-phone" placeholder="+255 xxx xxx xxxx">
+                </div>
+                <div class="form-group">
+                  <label>Email Address</label>
+                  <input type="email" id="visitor-email" placeholder="name@example.com">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Address / Location</label>
+                <input type="text" id="visitor-address" placeholder="Street, area, or city">
+              </div>
+              <div class="form-group">
+                <label>How did they hear about us? *</label>
+                <select id="visitor-source" required>
+                  <option value="">— Select —</option>
+                  <option value="Friend">Friend/Family Member</option>
+                  <option value="Family">Relative</option>
+                  <option value="Online">Online (Website/Social Media)</option>
+                  <option value="Passing by">Passing By / Noticed the Church</option>
+                  <option value="Event">Church Event</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label>Service Type *</label>
+                  <select id="visitor-service" required>
+                    <option value="">— Select —</option>
+                    <option value="Sunday Service">Sunday Service</option>
+                    <option value="Midweek">Midweek Service</option>
+                    <option value="Special Event">Special Event</option>
+                    <option value="Prayer Meeting">Prayer Meeting</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Service Date *</label>
+                  <input type="date" id="visitor-service-date" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>First-time Visitor?</label>
+                <div style="display:flex; gap:20px; align-items:center;">
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="radio" name="first-time" value="true" checked> Yes, first time
+                  </label>
+                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="radio" name="first-time" value="false"> Returning visitor
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Additional Notes</label>
+                <textarea id="visitor-notes" placeholder="Any special needs, prayer requests, or other notes..." style="min-height:80px;"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Record Visitor</button>
+              <div id="visitor-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Visitors I've Recorded</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Service Date</th>
+                    <th>Source</th>
+                    <th>Follow-up Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="visitors-tbody">
+                  <tr><td colspan="6" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUserId = null;
+  let myFullName = null;
+  let myLeadershipRole = null;
+  let myAssignments = [];
+  let eventsById = {};
+  let myDutyLogs = [];
+  let myRequests = [];
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+  function fmtDate(d){ return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }); }
+  function fmtDateTime(d){ return d ? new Date(d).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'; }
+
+  async function logAudit(action, details){
+    try {
+      await supabaseClient.from('audit_log').insert([{ actor_id: currentUserId, actor_name: myFullName, action, details }]);
+    } catch(err){ console.error('Audit log failed (non-blocking):', err); }
+  }
+
+  function initSidebarToggle(){
+    const toggle = document.getElementById('dash-menu-toggle');
+    const sidebar = document.getElementById('dash-sidebar');
+    if(toggle && sidebar) toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  }
+
+  function initTabNavigation(){
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabName = tab.getAttribute('data-tab');
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        const sidebar = document.getElementById('dash-sidebar');
+        if(sidebar) sidebar.classList.remove('open');
+      });
+    });
+  }
+
+  function initLogout(){
+    const logoutBtn = document.getElementById('logout-btn');
+    if(!logoutBtn) return;
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
+  }
+
+  // ---------- EVENTS (lookup only) ----------
+  async function loadEvents(){
+    const { data, error } = await supabaseClient.from('events').select('*');
+    if(error){ console.error('Error loading events:', error); return; }
+    (data || []).forEach(e => eventsById[e.id] = e);
+  }
+
+  function eventLabel(id){ return eventsById[id]?.title || '—'; }
+  function eventDateOf(id){ return eventsById[id] ? fmtDate(eventsById[id].event_date) : '—'; }
+
+  // ---------- MY ASSIGNMENTS ----------
+  async function loadMyAssignments(){
+    const { data, error } = await supabaseClient
+      .from('usher_assignments')
+      .select('*')
+      .eq('usher_id', currentUserId)
+      .order('created_at', { ascending:false });
+    if(error){ console.error('Error loading assignments:', error); return; }
+    myAssignments = data || [];
+    renderAssignmentsList();
+    populateDutySelect();
+    renderOverview();
+  }
+
+  function renderAssignmentsList(){
+    const container = document.getElementById('assignments-list');
+    if(!myAssignments.length){
+      container.innerHTML = '<div class="empty-state">No assignments yet. Your Chief Usher will place you on a station.</div>';
+      return;
+    }
+    container.innerHTML = myAssignments.map(a => {
+      const badgeClass = a.status === 'confirmed' ? 'badge-success' : a.status === 'declined' ? 'badge-danger' : a.status === 'completed' ? 'badge-info' : 'badge-warning';
+      const canRespond = a.status === 'assigned';
+      return `
+        <div class="assignment-card">
+          <div class="info">
+            <strong>${escapeHTML(eventLabel(a.event_id))} — ${escapeHTML(a.station)}</strong>
+            <span>${eventDateOf(a.event_id)} ${a.notes ? '· ' + escapeHTML(a.notes) : ''}</span>
+            <div style="margin-top:6px;"><span class="badge ${badgeClass}">${escapeHTML(a.status)}</span></div>
+          </div>
+          <div class="assignment-actions">
+            ${canRespond ? `
+              <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="respondAssignment('${a.id}','confirmed')">Confirm</button>
+              <button class="btn" style="padding:8px 16px; font-size:0.85rem; background:rgba(232,97,63,0.1); color:var(--coral);" onclick="respondAssignment('${a.id}','declined')">Decline</button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function respondAssignment(id, status){
+    try {
+      const { error } = await supabaseClient.from('usher_assignments').update({ status }).eq('id', id);
+      if(error) throw error;
+      await logAudit('usher_assignment_responded', { id, status });
+      await loadMyAssignments();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  function renderOverview(){
+    const upcoming = myAssignments.filter(a => a.status === 'assigned' || a.status === 'confirmed');
+    const completed = myAssignments.filter(a => a.status === 'completed');
+    document.getElementById('stat-upcoming').textContent = upcoming.length;
+    document.getElementById('stat-completed').textContent = completed.length;
+    document.getElementById('stat-pending-requests').textContent = myRequests.filter(r => r.status === 'pending').length;
+
+    const box = document.getElementById('next-duty-box');
+    const sorted = upcoming.slice().sort((a,b) => {
+      const da = eventsById[a.event_id]?.event_date || '9999-12-31';
+      const db = eventsById[b.event_id]?.event_date || '9999-12-31';
+      return new Date(da) - new Date(db);
+    });
+    if(!sorted.length){ box.innerHTML = 'No upcoming duty scheduled.'; return; }
+    const next = sorted[0];
+    box.innerHTML = `
+      <div style="font-weight:700; font-size:1.05rem; margin-bottom:4px;">${escapeHTML(eventLabel(next.event_id))} — ${escapeHTML(next.station)}</div>
+      <div style="color:#666; font-size:0.9rem;">${eventDateOf(next.event_id)}${next.notes ? ' · ' + escapeHTML(next.notes) : ''}</div>
+    `;
+  }
+
+  // ---------- DUTY CHECK-IN ----------
+  function populateDutySelect(){
+    const sel = document.getElementById('duty-assignment-select');
+    const active = myAssignments.filter(a => a.status !== 'declined');
+    sel.innerHTML = active.length
+      ? active.map(a => `<option value="${a.id}">${escapeHTML(eventLabel(a.event_id))} — ${escapeHTML(a.station)}</option>`).join('')
+      : '<option value="">No assignments yet</option>';
+  }
+
+  async function loadMyDutyLogs(){
+    const { data, error } = await supabaseClient
+      .from('usher_duty_log')
+      .select('*')
+      .eq('usher_id', currentUserId)
+      .order('created_at', { ascending:false });
+    if(error){ console.error('Error loading duty logs:', error); return; }
+    myDutyLogs = data || [];
+    renderMyDutyLogs();
+  }
+
+  function renderMyDutyLogs(){
+    const tbody = document.getElementById('my-duty-tbody');
+    tbody.innerHTML = myDutyLogs.length ? myDutyLogs.map(d => {
+      const a = myAssignments.find(x => x.id === d.assignment_id);
+      return `
+        <tr>
+          <td>${escapeHTML(eventLabel(d.event_id))}</td>
+          <td>${escapeHTML(a ? a.station : '—')}</td>
+          <td>${fmtDateTime(d.checked_in_at)}</td>
+          <td>${fmtDateTime(d.checked_out_at)}</td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="4" style="text-align:center; color:#999;">No duty records yet.</td></tr>';
+  }
+
+  function initDutyButtons(){
+    document.getElementById('clock-in-btn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('duty-status');
+      const assignmentId = document.getElementById('duty-assignment-select').value;
+      const assignment = myAssignments.find(a => a.id === assignmentId);
+      if(!assignment){ statusEl.innerHTML = '<span style="color:var(--coral);">Choose an assignment first.</span>'; return; }
+      try {
+        statusEl.textContent = 'Clocking in...';
+        const { error } = await supabaseClient.from('usher_duty_log').insert([{
+          assignment_id: assignmentId,
+          usher_id: currentUserId,
+          event_id: assignment.event_id,
+          checked_in_at: new Date().toISOString(),
+          marked_by: currentUserId
+        }]);
+        if(error) throw error;
+        await logAudit('usher_clocked_in', { assignment_id: assignmentId });
+        statusEl.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Clocked in! Have a blessed shift.</span>';
+        await loadMyDutyLogs();
+        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+      } catch(err){ statusEl.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+
+    document.getElementById('clock-out-btn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('duty-status');
+      const assignmentId = document.getElementById('duty-assignment-select').value;
+      const openLog = myDutyLogs.find(d => d.assignment_id === assignmentId && !d.checked_out_at);
+      if(!openLog){ statusEl.innerHTML = '<span style="color:var(--coral);">No open check-in found for this assignment. Clock in first.</span>'; return; }
+      try {
+        statusEl.textContent = 'Clocking out...';
+        const { error } = await supabaseClient.from('usher_duty_log').update({ checked_out_at: new Date().toISOString() }).eq('id', openLog.id);
+        if(error) throw error;
+        await logAudit('usher_clocked_out', { assignment_id: assignmentId });
+        statusEl.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Clocked out. Thank you for serving!</span>';
+        await loadMyDutyLogs();
+        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+      } catch(err){ statusEl.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+  }
+
+  // ---------- REQUESTS ----------
+  async function loadRequests(){
+    const { data, error } = await supabaseClient
+      .from('leadership_requests')
+      .select('*')
+      .eq('requested_by', currentUserId)
+      .order('created_at', { ascending:false });
+    if(error){ console.error('Error loading requests:', error); return; }
+    myRequests = data || [];
+    renderRequests();
+    renderOverview();
+  }
+
+  function requestStatusLabel(status){
+    if(status === 'pending_supervisor') return 'Awaiting Chief Usher';
+    return status;
+  }
+
+  function renderRequests(){
+    const tbody = document.getElementById('requests-tbody');
+    tbody.innerHTML = myRequests.length ? myRequests.map(r => {
+      const badgeClass = r.status === 'approved' ? 'badge-success' : r.status === 'rejected' ? 'badge-danger' : 'badge-warning';
+      return `
+        <tr>
+          <td>${fmtDate(r.created_at)}</td>
+          <td>${escapeHTML(r.request_type || '—')}</td>
+          <td>${escapeHTML(r.description)}</td>
+          <td><span class="badge ${badgeClass}">${escapeHTML(requestStatusLabel(r.status))}</span></td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="4" style="text-align:center; color:#999;">No requests sent yet.</td></tr>';
+  }
+
+  function initRequestForm(){
+    const form = document.getElementById('request-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('request-status');
+      // Chief ushers have no one above them but the G.O., so their own
+      // requests go straight in. Plain ushers route through their Chief
+      // Usher first for review before it reaches the G.O.
+      const startingStatus = myLeadershipRole === 'chief_usher' ? 'pending' : 'pending_supervisor';
+      const payload = {
+        requested_by: currentUserId,
+        department: 'Usher Ministry',
+        request_type: document.getElementById('request-type').value,
+        description: document.getElementById('request-description').value,
+        status: startingStatus
+      };
+      try {
+        status.textContent = 'Sending...';
+        const { error } = await supabaseClient.from('leadership_requests').insert([payload]);
+        if(error) throw error;
+        await logAudit('approval_requested', payload);
+        status.innerHTML = startingStatus === 'pending_supervisor'
+          ? '<span style="color:var(--leaf); font-weight:600;">✓ Sent to your Chief Usher for review!</span>'
+          : '<span style="color:var(--leaf); font-weight:600;">✓ Request sent!</span>';
+        form.reset();
+        await loadRequests();
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // ---------- VISITORS (Stage 3) ----------
+  let myVisitors = [];
+
+  async function loadVisitors(){
+    const { data, error } = await supabaseClient
+      .from('usher_visitor_records')
+      .select('*')
+      .eq('usher_id', currentUserId)
+      .order('service_date', { ascending: false });
+    if(error){ console.error('Error loading visitors:', error); return; }
+    myVisitors = data || [];
+    renderVisitors();
+  }
+
+  function renderVisitors(){
+    const tbody = document.getElementById('visitors-tbody');
+    if(!tbody) return;
+    
+    tbody.innerHTML = myVisitors.length ? myVisitors.map(v => {
+      const followUpBadge = v.follow_up_status === 'completed' 
+        ? '<span class="badge badge-success">✓ Contacted</span>'
+        : v.follow_up_status === 'no_contact'
+        ? '<span class="badge badge-danger">✗ Unable</span>'
+        : '<span class="badge badge-warning">⧖ Pending</span>';
+      
+      return `
+        <tr>
+          <td>${escapeHTML(v.visitor_full_name)}</td>
+          <td>${escapeHTML(v.visitor_phone || '—')}</td>
+          <td>${fmtDate(v.service_date)}</td>
+          <td>${escapeHTML(v.how_they_heard || '—')}</td>
+          <td>${followUpBadge}</td>
+          <td>
+            <button class="btn visitor-edit-btn" data-id="${v.id}" style="padding:6px 12px; font-size:0.8rem; background:rgba(18,33,62,0.1); color:var(--navy);">Edit</button>
+          </td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="6" style="text-align:center; color:#999;">No visitors recorded yet.</td></tr>';
+
+    // Add edit button handlers
+    tbody.querySelectorAll('.visitor-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const visitorId = btn.getAttribute('data-id');
+        editVisitorFollowUp(visitorId);
+      });
+    });
+  }
+
+  function initVisitorForm(){
+    const form = document.getElementById('visitor-form');
+    if(!form) return;
+
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('visitor-service-date');
+    if(dateInput) dateInput.value = today;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('visitor-status');
+      
+      const payload = {
+        usher_id: currentUserId,
+        visitor_full_name: document.getElementById('visitor-name').value,
+        visitor_phone: document.getElementById('visitor-phone').value || null,
+        visitor_email: document.getElementById('visitor-email').value || null,
+        visitor_address: document.getElementById('visitor-address').value || null,
+        how_they_heard: document.getElementById('visitor-source').value,
+        service_type: document.getElementById('visitor-service').value,
+        service_date: document.getElementById('visitor-service-date').value,
+        first_time_visitor: document.getElementById('visitor-name').querySelector('input[name="first-time"]:checked')?.value === 'true',
+        notes: document.getElementById('visitor-notes').value || null,
+        follow_up_status: 'pending'
+      };
+
+      try {
+        status.textContent = 'Recording...';
+        const { error } = await supabaseClient.from('usher_visitor_records').insert([payload]);
+        if(error) throw error;
+
+        await logAudit('visitor_recorded', {
+          visitor_name: payload.visitor_full_name,
+          service_date: payload.service_date
+        });
+
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Visitor recorded! Thanks for helping reach out to guests.</span>';
+        form.reset();
+        dateInput.value = today;
+        await loadVisitors();
+        setTimeout(() => { status.textContent = ''; }, 4000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+        console.error('Error recording visitor:', err);
+      }
+    });
+  }
+
+  async function editVisitorFollowUp(visitorId){
+    const visitor = myVisitors.find(v => v.id === visitorId);
+    if(!visitor) return;
+
+    const newStatus = prompt(
+      'Update follow-up status:\n1 = Pending\n2 = Completed\n3 = Unable to Contact',
+      '1'
+    );
+    if(!newStatus) return;
+
+    const statusMap = { '1': 'pending', '2': 'completed', '3': 'no_contact' };
+    const newValue = statusMap[newStatus];
+    if(!newValue){
+      alert('Invalid option');
+      return;
+    }
+
+    try {
+      const { error } = await supabaseClient
+        .from('usher_visitor_records')
+        .update({ follow_up_status: newValue })
+        .eq('id', visitorId);
+      
+      if(error) throw error;
+
+      await logAudit('visitor_followup_updated', {
+        visitor_id: visitorId,
+        new_status: newValue
+      });
+
+      await loadVisitors();
+      alert('Follow-up status updated!');
+    } catch(err){
+      alert(`Error: ${err.message}`);
+    }
+  }
+
+  // ---------- AUTH GATE + INIT ----------
+  document.addEventListener('DOMContentLoaded', async () => {
+    initSidebarToggle();
+    initLogout();
+    initTabNavigation();
+
+    const loadingEl = document.getElementById('us-loading');
+    const deniedEl = document.getElementById('us-denied');
+    const appEl = document.getElementById('us-app');
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if(!session){
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUserId = session.user.id;
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('members')
+      .select('full_name, role, leadership_role')
+      .eq('id', session.user.id)
+      .single();
+
+    const { data: activeRoleRows } = await supabaseClient
+      .from('member_leadership_roles')
+      .select('leadership_role')
+      .eq('member_id', session.user.id)
+      .eq('is_active', true);
+    const activeRoles = [
+      profile ? profile.leadership_role : null,
+      ...((activeRoleRows || []).map(r => r.leadership_role))
+    ].filter(Boolean);
+
+    const authorized = profile && (
+      profile.role === 'admin' ||
+      activeRoles.includes('usher') ||
+      activeRoles.includes('chief_usher')
+    );
+
+    if(profileError || !authorized){
+      loadingEl.style.display = 'none';
+      deniedEl.style.display = 'block';
+      return;
+    }
+    myFullName = profile.full_name;
+    myLeadershipRole = profile.leadership_role;
+
+    loadingEl.style.display = 'none';
+    appEl.style.display = 'block';
+
+    await loadEvents();
+    await loadMyAssignments();
+    await loadMyDutyLogs();
+    await loadRequests();
+
+    initDutyButtons();
+    initRequestForm();
+    await loadVisitors();
+    initVisitorForm();
+  });
+</script>
+</body>
+</html>

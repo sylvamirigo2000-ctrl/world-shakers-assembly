@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Men's Leader Panel — World Shakers Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#12213E; --navy-deep:#0B1730; --gold:#F0A93D; --coral:#E8613F;
+  --cream:#FBF7F0; --leaf:#4C7A4E; --ink:#1B2333; --line: rgba(18,33,62,0.12);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--cream); line-height:1.55;}
+h1,h2,h3{font-family:'Sora', sans-serif; font-weight:800; letter-spacing:-0.02em;}
+.mono{font-family:'Space Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; font-size:0.75rem;}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+
+.dash-shell{display:flex; min-height:100vh;}
+.dash-sidebar{
+  width:260px; flex-shrink:0; background:var(--navy-deep); color:var(--cream);
+  padding:28px 20px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Sora'; font-weight:800; font-size:1.05rem;}
+.brand .mark{width:40px; height:40px; border-radius:8px; object-fit:contain;}
+.dash-sidebar .brand{color:var(--cream); font-size:0.98rem; margin-bottom:36px;}
+.dash-nav{display:flex; flex-direction:column; gap:4px; flex:1;}
+.dash-nav a{
+  display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px;
+  font-size:0.9rem; font-weight:600; color:rgba(251,247,240,0.75); transition:background .15s ease, color .15s ease;
+  cursor:pointer;
+}
+.dash-nav a .ic{width:20px; text-align:center; flex-shrink:0;}
+.dash-nav a:hover{background:rgba(251,247,240,0.06); color:var(--cream);}
+.dash-nav a.active{background:linear-gradient(90deg,var(--gold),var(--coral)); color:var(--navy-deep);}
+.dash-logout{margin-top:20px; padding-top:20px; border-top:1px solid rgba(251,247,240,0.1);}
+
+.dash-main{flex:1; min-width:0;}
+.dash-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:20px 32px; border-bottom:1px solid var(--line); background:var(--cream);
+  position:sticky; top:0; z-index:10;
+}
+.dash-menu-toggle{display:none; background:none; border:none; cursor:pointer; flex-direction:column; gap:4px;}
+.dash-menu-toggle span{width:22px; height:2px; background:var(--navy);}
+.dash-content{padding:32px;}
+
+.page-head{margin-bottom:24px;}
+.page-head h1{font-size:1.6rem; margin-bottom:6px;}
+.page-head p{color:rgba(27,35,51,0.6); font-size:0.92rem;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.loading-spin{
+  width:34px; height:34px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--coral);
+  animation:spin 0.8s linear infinite; margin:60px auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.empty-state, .denied-state{
+  background:white; border:1px dashed var(--line); border-radius:16px; padding:40px;
+  text-align:center; color:rgba(27,35,51,0.55);
+}
+.denied-state{border-color:var(--coral); color:var(--coral);}
+
+.card{background:white; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:24px;}
+.card h2{font-size:1.2rem; margin-bottom:12px;}
+.card p{color:#666; margin-bottom:20px; font-size:0.9rem;}
+
+.btn{padding:12px 24px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:0.9rem; transition:all .15s ease;}
+.btn-primary{background:linear-gradient(90deg, var(--gold), var(--coral)); color:var(--navy-deep);}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 4px 12px rgba(232,97,63,0.2);}
+.btn-danger{background:rgba(232,97,63,0.1); color:var(--coral);}
+.btn-danger:hover{background:rgba(232,97,63,0.2);}
+.btn:disabled{opacity:0.6; cursor:not-allowed;}
+
+.form-group{margin-bottom:20px;}
+.form-group label{display:block; font-weight:600; margin-bottom:6px; font-size:0.9rem;}
+.form-group input, .form-group textarea, .form-group select{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+  font-family:'Inter', sans-serif; font-size:0.9rem;
+}
+.form-group textarea{resize:vertical; min-height:100px;}
+.form-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:600px){.form-row{grid-template-columns:1fr;}}
+
+.table-wrapper{overflow-x:auto; margin-top:20px;}
+.table{width:100%; border-collapse:collapse; font-size:0.9rem;}
+.table thead tr{border-bottom:2px solid var(--navy);}
+.table th{padding:12px; text-align:left; font-weight:700; background:rgba(240,169,61,0.05);}
+.table td{padding:12px; border-bottom:1px solid var(--line);}
+.table tr:hover{background:rgba(240,169,61,0.03);}
+
+.badge{display:inline-block; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:700; text-transform:uppercase;}
+.badge-success{background:rgba(76,122,78,0.1); color:var(--leaf);}
+.badge-warning{background:rgba(240,169,61,0.1); color:#E68F00;}
+.badge-info{background:rgba(18,33,62,0.1); color:var(--navy);}
+.badge-danger{background:rgba(232,97,63,0.12); color:var(--coral);}
+
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:16px; margin-bottom:24px;}
+.stat-box{background:white; border:1px solid var(--line); border-radius:14px; padding:20px;}
+.stat-box .stat-label{font-size:0.82rem; color:#666; margin-bottom:6px;}
+.stat-box .stat-value{font-size:1.6rem; font-weight:800; color:var(--navy);}
+.stat-box.accent-gold .stat-value{color:var(--gold);}
+.stat-box.accent-coral .stat-value{color:var(--coral);}
+.stat-box.accent-leaf .stat-value{color:var(--leaf);}
+
+@media (max-width:820px){
+  .dash-sidebar{position:fixed; left:-280px; top:0; bottom:0; z-index:100; transition:left .2s ease; width:250px;}
+  .dash-sidebar.open{left:0;}
+  .dash-menu-toggle{display:flex;}
+  .dash-content{padding:22px;}
+  .dash-topbar{padding:16px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <div class="brand"><img src="assets/logo.png" alt="World Shakers Assembly logo" class="mark" onerror="this.style.display='none'"> World Shakers Assembly</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html"><span class="ic">🏠</span> Back to Dashboard</a>
+      <a class="nav-tab active" data-tab="overview" style="margin-top:12px;"><span class="ic">📊</span> Overview</a>
+      <a class="nav-tab" data-tab="members"><span class="ic">🧔</span> Men</a>
+      <a class="nav-tab" data-tab="minutes"><span class="ic">🗒️</span> Meeting Minutes</a>
+      <a class="nav-tab" data-tab="reports"><span class="ic">📄</span> Reports to G.O.</a>
+      <a class="nav-tab" data-tab="announcements"><span class="ic">📢</span> Announcements</a>
+    </nav>
+    <div class="dash-logout">
+      <a href="#" id="logout-btn"><span class="ic">↩</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <button class="dash-menu-toggle" id="dash-menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <div class="brand" style="font-size:0.95rem;">Men's Leader Panel</div>
+      <div></div>
+    </div>
+
+    <div class="dash-content">
+      <div id="ml-loading"><div class="loading-spin"></div></div>
+
+      <div id="ml-denied" style="display:none;">
+        <div class="denied-state">
+          <strong>Men's Leader access only.</strong><br>
+          Your account isn't assigned this role. Ask the General Overseer to assign you in the Admin Panel's Leadership Roles tab.
+        </div>
+      </div>
+
+      <div id="ml-app" style="display:none;">
+
+        <!-- OVERVIEW -->
+        <div id="overview-tab" class="tab-content active">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Men's Ministry</span>
+            <h1>📊 Overview</h1>
+            <p>A snapshot of the men's ministry.</p>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box accent-coral"><div class="stat-label">Total Men</div><div class="stat-value" id="stat-total">—</div></div>
+            <div class="stat-box accent-gold"><div class="stat-label">Meetings Logged (this month)</div><div class="stat-value" id="stat-meetings">—</div></div>
+            <div class="stat-box accent-leaf"><div class="stat-label">Reports Sent</div><div class="stat-value" id="stat-reports">—</div></div>
+            <div class="stat-box"><div class="stat-label">Pending G.O. Review</div><div class="stat-value" id="stat-pending">—</div></div>
+          </div>
+        </div>
+
+        <!-- MEMBERS -->
+        <div id="members-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Men's Ministry</span>
+            <h1>🧔 Men</h1>
+            <p>Every registered male member. Manage accounts from the Admin Panel.</p>
+          </div>
+          <div class="card">
+            <div class="form-group" style="max-width:320px;"><input type="text" id="member-search" placeholder="Search by name or email..."></div>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th></tr></thead>
+                <tbody id="members-tbody"><tr><td colspan="4" style="text-align:center; color:#999;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEETING MINUTES -->
+        <div id="minutes-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Men's Ministry</span>
+            <h1>🗒️ Meeting Minutes</h1>
+            <p>Keep a record of every men's meeting.</p>
+          </div>
+          <div class="card">
+            <h2>Record a Meeting</h2>
+            <form id="minutes-form">
+              <div class="form-row">
+                <div class="form-group"><label>Date</label><input type="date" id="min-date" required></div>
+                <div class="form-group"><label>Attendees</label><input type="number" id="min-attendees" min="0" value="0"></div>
+              </div>
+              <div class="form-group"><label>Title</label><input type="text" id="min-title" required placeholder="e.g., Monthly Men's Fellowship"></div>
+              <div class="form-group"><label>Minutes</label><textarea id="min-notes" required placeholder="What was discussed, decided, and any action points..."></textarea></div>
+              <button type="submit" class="btn btn-primary">+ Save Minutes</button>
+              <div id="minutes-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>Past Meetings</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Date</th><th>Title</th><th>Attendees</th><th>Minutes</th><th>Actions</th></tr></thead>
+                <tbody id="minutes-tbody"><tr><td colspan="5" style="text-align:center; color:#999;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div id="reports-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Men's Ministry</span>
+            <h1>📄 Reports to G.O.</h1>
+            <p>Send a ministry report to the General Overseer.</p>
+          </div>
+          <div class="card">
+            <h2>New Report</h2>
+            <form id="report-form">
+              <div class="form-group"><label>Period Label</label><input type="text" id="report-label" required placeholder="e.g., July 2026 Men's Ministry Report"></div>
+              <div class="form-group"><label>Summary</label><textarea id="report-summary" required placeholder="Summarize meetings, attendance, activities, and needs..."></textarea></div>
+              <button type="submit" class="btn btn-primary">Send to G.O.</button>
+              <div id="report-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>Sent Reports</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Date</th><th>Summary</th><th>Status</th></tr></thead>
+                <tbody id="reports-tbody"><tr><td colspan="3" style="text-align:center; color:#999;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANNOUNCEMENTS -->
+        <div id="announcements-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Men's Ministry</span>
+            <h1>📢 Send Announcement to Men</h1>
+            <p>This will only appear for male members, on their Dashboard and Announcements page.</p>
+          </div>
+          <div class="card">
+            <form id="announcement-form">
+              <div class="form-group"><label>Title</label><input type="text" id="ann-title" required placeholder="e.g., Men's Retreat Registration Open"></div>
+              <div class="form-group"><label>Message</label><textarea id="ann-body" required placeholder="Write your announcement..."></textarea></div>
+              <button type="submit" class="btn btn-primary">Publish to Men</button>
+              <div id="announcement-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---- Ministry-specific config (this is the only block that differs across
+  // mens-leader.html / womens-leader.html / youth-leader.html) ----
+  const MINISTRY_KEY = 'men';                     // used in ministry_meeting_minutes.ministry
+  const MINISTRY_DEPARTMENT = "Men's Ministry";   // used in leadership_requests.department
+  const MINISTRY_AUDIENCE = 'men';                // used in announcements.audience
+  const MINISTRY_ROLE = 'mens_leader';            // members.leadership_role required to access this page
+  const MEMBER_FILTER = (m) => m.gender === 'male';
+
+  let currentUserId = null;
+  let myFullName = null;
+  let allMembers = [];
+  let allMinutes = [];
+  let allReports = [];
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+  function fmtDate(d){ return d ? new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—'; }
+  function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+  async function logAudit(action, details){
+    try { await supabaseClient.from('audit_log').insert([{ actor_id: currentUserId, actor_name: myFullName, action, details }]); }
+    catch(err){ console.error('Audit log failed:', err); }
+  }
+
+  function initSidebarToggle(){
+    const toggle = document.getElementById('dash-menu-toggle');
+    const sidebar = document.getElementById('dash-sidebar');
+    if(toggle && sidebar) toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  }
+
+  function initTabNavigation(){
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabName = tab.getAttribute('data-tab');
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        const sidebar = document.getElementById('dash-sidebar');
+        if(sidebar) sidebar.classList.remove('open');
+      });
+    });
+  }
+
+  function initLogout(){
+    const logoutBtn = document.getElementById('logout-btn');
+    if(!logoutBtn) return;
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
+  }
+
+  // ---------- MEMBERS ----------
+  async function loadMembers(){
+    const { data, error } = await supabaseClient.from('members').select('*').order('full_name');
+    if(error){ console.error('Error loading members:', error); return; }
+    allMembers = (data || []).filter(MEMBER_FILTER);
+    renderMembers();
+    updateStats();
+  }
+
+  function renderMembers(){
+    const tbody = document.getElementById('members-tbody');
+    const search = (document.getElementById('member-search')?.value || '').toLowerCase();
+    const filtered = allMembers.filter(m => (m.full_name || '').toLowerCase().includes(search) || (m.email || '').toLowerCase().includes(search));
+    tbody.innerHTML = filtered.length ? filtered.map(m => `
+      <tr>
+        <td>${escapeHTML(m.full_name)}</td>
+        <td>${escapeHTML(m.email || '—')}</td>
+        <td>${escapeHTML(m.phone || '—')}</td>
+        <td>${fmtDate(m.created_at)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="4" style="text-align:center; color:#999;">No members found.</td></tr>';
+  }
+
+  function initMemberSearch(){
+    const input = document.getElementById('member-search');
+    if(input) input.addEventListener('input', renderMembers);
+  }
+
+  // ---------- MEETING MINUTES ----------
+  async function loadMinutes(){
+    const { data, error } = await supabaseClient
+      .from('ministry_meeting_minutes')
+      .select('*')
+      .eq('ministry', MINISTRY_KEY)
+      .order('meeting_date', { ascending:false });
+    if(error){ console.error('Error loading minutes:', error); return; }
+    allMinutes = data || [];
+    renderMinutes();
+    updateStats();
+  }
+
+  function renderMinutes(){
+    const tbody = document.getElementById('minutes-tbody');
+    tbody.innerHTML = allMinutes.length ? allMinutes.map(m => `
+      <tr>
+        <td>${fmtDate(m.meeting_date)}</td>
+        <td>${escapeHTML(m.title)}</td>
+        <td>${m.attendees_count ?? 0}</td>
+        <td>${escapeHTML((m.notes || '').slice(0, 80))}${(m.notes || '').length > 80 ? '…' : ''}</td>
+        <td><button class="btn btn-danger" style="padding:6px 12px; font-size:0.75rem;" onclick="deleteMinutes('${m.id}')">Delete</button></td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" style="text-align:center; color:#999;">No meetings recorded yet.</td></tr>';
+  }
+
+  async function deleteMinutes(id){
+    if(!confirm('Delete this meeting record?')) return;
+    try {
+      const { error } = await supabaseClient.from('ministry_meeting_minutes').delete().eq('id', id);
+      if(error) throw error;
+      await logAudit('ministry_minutes_deleted', { id, ministry: MINISTRY_KEY });
+      await loadMinutes();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  function initMinutesForm(){
+    document.getElementById('min-date').value = todayISO();
+    document.getElementById('minutes-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('minutes-status');
+      const payload = {
+        ministry: MINISTRY_KEY,
+        meeting_date: document.getElementById('min-date').value,
+        title: document.getElementById('min-title').value,
+        attendees_count: Number(document.getElementById('min-attendees').value || 0),
+        notes: document.getElementById('min-notes').value,
+        recorded_by: currentUserId
+      };
+      try {
+        status.textContent = 'Saving...';
+        const { error } = await supabaseClient.from('ministry_meeting_minutes').insert([payload]);
+        if(error) throw error;
+        await logAudit('ministry_minutes_recorded', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Minutes saved!</span>';
+        e.target.reset();
+        document.getElementById('min-date').value = todayISO();
+        await loadMinutes();
+        setTimeout(() => { status.textContent = ''; }, 2500);
+      } catch(err){ status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+  }
+
+  // ---------- REPORTS TO G.O. ----------
+  async function loadReports(){
+    const { data, error } = await supabaseClient
+      .from('leadership_requests')
+      .select('*')
+      .eq('requested_by', currentUserId)
+      .eq('department', MINISTRY_DEPARTMENT)
+      .eq('request_type', 'Ministry Report')
+      .order('created_at', { ascending:false });
+    if(error){ console.error('Error loading reports:', error); return; }
+    allReports = data || [];
+    renderReports();
+    updateStats();
+  }
+
+  function renderReports(){
+    const tbody = document.getElementById('reports-tbody');
+    tbody.innerHTML = allReports.length ? allReports.map(r => {
+      const badgeClass = r.status === 'approved' ? 'badge-success' : r.status === 'rejected' ? 'badge-danger' : 'badge-warning';
+      return `
+        <tr>
+          <td>${fmtDate(r.created_at)}</td>
+          <td>${escapeHTML(r.description)}</td>
+          <td><span class="badge ${badgeClass}">${escapeHTML(r.status)}</span></td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="3" style="text-align:center; color:#999;">No reports sent yet.</td></tr>';
+  }
+
+  function initReportForm(){
+    document.getElementById('report-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('report-status');
+      const label = document.getElementById('report-label').value;
+      const summary = document.getElementById('report-summary').value;
+      const payload = {
+        requested_by: currentUserId,
+        department: MINISTRY_DEPARTMENT,
+        request_type: 'Ministry Report',
+        description: `${label} — ${summary}`,
+        status: 'pending'
+      };
+      try {
+        status.textContent = 'Sending...';
+        const { error } = await supabaseClient.from('leadership_requests').insert([payload]);
+        if(error) throw error;
+        await logAudit('ministry_report_sent', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Report sent to the General Overseer!</span>';
+        e.target.reset();
+        await loadReports();
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      } catch(err){ status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+  }
+
+  // ---------- ANNOUNCEMENTS ----------
+  function initAnnouncementForm(){
+    document.getElementById('announcement-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('announcement-status');
+      const title = document.getElementById('ann-title').value.trim();
+      const body = document.getElementById('ann-body').value.trim();
+      try {
+        status.textContent = 'Publishing...';
+        const { error } = await supabaseClient.from('announcements').insert({ title, body, audience: MINISTRY_AUDIENCE });
+        if(error) throw error;
+        await logAudit('ministry_announcement_posted', { title, audience: MINISTRY_AUDIENCE });
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Announcement published!</span>';
+        e.target.reset();
+        setTimeout(() => { status.textContent = ''; }, 2500);
+      } catch(err){ status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`; }
+    });
+  }
+
+  // ---------- STATS ----------
+  function updateStats(){
+    document.getElementById('stat-total').textContent = allMembers.length;
+    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+    document.getElementById('stat-meetings').textContent = allMinutes.filter(m => new Date(m.meeting_date) >= monthStart).length;
+    document.getElementById('stat-reports').textContent = allReports.length;
+    document.getElementById('stat-pending').textContent = allReports.filter(r => r.status === 'pending').length;
+  }
+
+  // ---------- AUTH GATE + INIT ----------
+  document.addEventListener('DOMContentLoaded', async () => {
+    initSidebarToggle();
+    initLogout();
+    initTabNavigation();
+
+    const loadingEl = document.getElementById('ml-loading');
+    const deniedEl = document.getElementById('ml-denied');
+    const appEl = document.getElementById('ml-app');
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if(!session){ window.location.href = 'login.html'; return; }
+    currentUserId = session.user.id;
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('members')
+      .select('full_name, role, leadership_role')
+      .eq('id', session.user.id)
+      .single();
+
+    const { data: activeRoleRows } = await supabaseClient
+      .from('member_leadership_roles')
+      .select('leadership_role')
+      .eq('member_id', session.user.id)
+      .eq('is_active', true);
+    const activeRoles = [
+      profile ? profile.leadership_role : null,
+      ...((activeRoleRows || []).map(r => r.leadership_role))
+    ].filter(Boolean);
+
+    const authorized = profile && (profile.role === 'admin' || activeRoles.includes(MINISTRY_ROLE));
+
+    if(profileError || !authorized){
+      loadingEl.style.display = 'none';
+      deniedEl.style.display = 'block';
+      return;
+    }
+    myFullName = profile.full_name;
+
+    loadingEl.style.display = 'none';
+    appEl.style.display = 'block';
+
+    await loadMembers();
+    await loadMinutes();
+    await loadReports();
+
+    initMemberSearch();
+    initMinutesForm();
+    initReportForm();
+    initAnnouncementForm();
+    updateStats();
+  });
+</script>
+</body>
+</html>

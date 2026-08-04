@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Praise Member Panel — World Shakers Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#12213E; --navy-deep:#0B1730; --gold:#F0A93D; --coral:#E8613F;
+  --cream:#FBF7F0; --leaf:#4C7A4E; --ink:#1B2333; --line: rgba(18,33,62,0.12);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--cream); line-height:1.55;}
+h1,h2,h3{font-family:'Sora', sans-serif; font-weight:800; letter-spacing:-0.02em;}
+.mono{font-family:'Space Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; font-size:0.75rem;}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+
+.dash-shell{display:flex; min-height:100vh;}
+.dash-sidebar{
+  width:260px; flex-shrink:0; background:var(--navy-deep); color:var(--cream);
+  padding:28px 20px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Sora'; font-weight:800; font-size:1.05rem;}
+.brand .mark{width:40px; height:40px; border-radius:8px; object-fit:contain;}
+.dash-sidebar .brand{color:var(--cream); font-size:0.98rem; margin-bottom:36px;}
+.dash-nav{display:flex; flex-direction:column; gap:4px; flex:1;}
+.dash-nav a{
+  display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px;
+  font-size:0.9rem; font-weight:600; color:rgba(251,247,240,0.75); transition:background .15s ease, color .15s ease;
+  cursor:pointer;
+}
+.dash-nav a .ic{width:20px; text-align:center; flex-shrink:0;}
+.dash-nav a:hover{background:rgba(251,247,240,0.06); color:var(--cream);}
+.dash-nav a.active{background:linear-gradient(90deg,var(--gold),var(--coral)); color:var(--navy-deep);}
+.dash-logout{margin-top:20px; padding-top:20px; border-top:1px solid rgba(251,247,240,0.1);}
+
+.dash-main{flex:1; min-width:0;}
+.dash-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:20px 32px; border-bottom:1px solid var(--line); background:var(--cream);
+  position:sticky; top:0; z-index:10;
+}
+.dash-menu-toggle{display:none; background:none; border:none; cursor:pointer; flex-direction:column; gap:4px;}
+.dash-menu-toggle span{width:22px; height:2px; background:var(--navy);}
+.dash-content{padding:32px;}
+
+.page-head{margin-bottom:24px;}
+.page-head h1{font-size:1.6rem; margin-bottom:6px;}
+.page-head p{color:rgba(27,35,51,0.6); font-size:0.92rem;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.loading-spin{
+  width:34px; height:34px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--coral);
+  animation:spin 0.8s linear infinite; margin:60px auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.empty-state, .denied-state{
+  background:white; border:1px dashed var(--line); border-radius:16px; padding:40px;
+  text-align:center; color:rgba(27,35,51,0.55);
+}
+.denied-state{border-color:var(--coral); color:var(--coral);}
+
+.card{background:white; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:24px;}
+.card h2{font-size:1.2rem; margin-bottom:12px;}
+.card p{color:#666; margin-bottom:20px; font-size:0.9rem;}
+
+.btn{padding:12px 24px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:0.9rem; transition:all .15s ease;}
+.btn-primary{background:linear-gradient(90deg, var(--gold), var(--coral)); color:var(--navy-deep);}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 4px 12px rgba(232,97,63,0.2);}
+.btn-secondary{background:var(--navy); color:white;}
+.btn-secondary:hover{background:var(--navy-deep);}
+.btn:disabled{opacity:0.6; cursor:not-allowed;}
+
+.form-group{margin-bottom:20px;}
+.form-group label{display:block; font-weight:600; margin-bottom:6px; font-size:0.9rem;}
+.form-group input, .form-group textarea, .form-group select{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+  font-family:'Inter', sans-serif; font-size:0.9rem;
+}
+.form-group textarea{resize:vertical; min-height:100px;}
+
+.table-wrapper{overflow-x:auto; margin-top:20px;}
+.table{width:100%; border-collapse:collapse; font-size:0.9rem;}
+.table thead tr{border-bottom:2px solid var(--navy);}
+.table th{padding:12px; text-align:left; font-weight:700; background:rgba(240,169,61,0.05);}
+.table td{padding:12px; border-bottom:1px solid var(--line);}
+.table tr:hover{background:rgba(240,169,61,0.03);}
+
+.badge{display:inline-block; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:700; text-transform:uppercase;}
+.badge-success{background:rgba(76,122,78,0.1); color:var(--leaf);}
+.badge-warning{background:rgba(240,169,61,0.1); color:#E68F00;}
+.badge-info{background:rgba(18,33,62,0.1); color:var(--navy);}
+.badge-danger{background:rgba(232,97,63,0.12); color:var(--coral);}
+
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:16px; margin-bottom:24px;}
+.stat-box{background:white; border:1px solid var(--line); border-radius:14px; padding:20px;}
+.stat-box .stat-label{font-size:0.82rem; color:#666; margin-bottom:6px;}
+.stat-box .stat-value{font-size:1.6rem; font-weight:800; color:var(--navy);}
+.stat-box.accent-gold .stat-value{color:var(--gold);}
+.stat-box.accent-coral .stat-value{color:var(--coral);}
+.stat-box.accent-leaf .stat-value{color:var(--leaf);}
+
+.assignment-card{border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px;}
+.assignment-card .info strong{display:block; font-size:1rem; margin-bottom:4px;}
+.assignment-card .info span{color:#666; font-size:0.85rem;}
+.assignment-top{display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;}
+.assignment-actions{display:flex; gap:8px; flex-wrap:wrap;}
+.comment-row{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.comment-row input{flex:1; min-width:180px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:'Inter'; font-size:0.85rem;}
+
+@media (max-width:820px){
+  .dash-sidebar{position:fixed; left:-280px; top:0; bottom:0; z-index:100; transition:left .2s ease; width:250px;}
+  .dash-sidebar.open{left:0;}
+  .dash-menu-toggle{display:flex;}
+  .dash-content{padding:22px;}
+  .dash-topbar{padding:16px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <div class="brand"><img src="assets/logo.png" alt="World Shakers Assembly logo" class="mark" onerror="this.style.display='none'"> World Shakers Assembly</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html"><span class="ic">🏠</span> Back to Dashboard</a>
+      <a class="nav-tab active" data-tab="overview" style="margin-top:12px;"><span class="ic">📊</span> Overview</a>
+      <a class="nav-tab" data-tab="songs"><span class="ic">🎵</span> My Songs</a>
+      <a class="nav-tab" data-tab="rehearsals"><span class="ic">🗓️</span> Practice Schedule</a>
+      <a class="nav-tab" data-tab="history"><span class="ic">🎤</span> Performance History</a>
+      <a class="nav-tab" data-tab="requests"><span class="ic">✅</span> My Requests</a>
+    </nav>
+    <div class="dash-logout">
+      <a href="#" id="logout-btn"><span class="ic">↩</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <button class="dash-menu-toggle" id="dash-menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <div class="brand" style="font-size:0.95rem;">Praise Member Panel</div>
+      <div></div>
+    </div>
+
+    <div class="dash-content">
+      <div id="pm-loading">
+        <div class="loading-spin"></div>
+      </div>
+
+      <div id="pm-denied" style="display:none;">
+        <div class="denied-state">
+          <strong>Praise Member access only.</strong><br>
+          Your account isn't assigned this role. Ask your Praise Leader or the General Overseer to assign you in the Admin Panel's Leadership Roles tab.
+        </div>
+      </div>
+
+      <div id="pm-app" style="display:none;">
+
+        <!-- TAB: OVERVIEW -->
+        <div id="overview-tab" class="tab-content active">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Praise Team</span>
+            <h1>📊 My Overview</h1>
+            <p>Your songs and rehearsals at a glance.</p>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-box accent-gold">
+              <div class="stat-label">Upcoming Assignments</div>
+              <div class="stat-value" id="stat-upcoming">—</div>
+            </div>
+            <div class="stat-box accent-leaf">
+              <div class="stat-label">Completed Assignments</div>
+              <div class="stat-value" id="stat-completed">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">My Pending Requests</div>
+              <div class="stat-value" id="stat-pending-requests">—</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Next Assignment</h2>
+            <div id="next-duty-box" style="color:#666;">Loading...</div>
+          </div>
+
+          <div class="card">
+            <h2>Next Rehearsal</h2>
+            <div id="next-rehearsal-box" style="color:#666;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- TAB: MY SONGS -->
+        <div id="songs-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Praise Team</span>
+            <h1>🎵 My Songs</h1>
+            <p>Songs and roles you've been placed on by the Praise Leader. Accept, decline, or leave a comment.</p>
+          </div>
+          <div id="assignments-list">
+            <div class="loading-spin"></div>
+          </div>
+        </div>
+
+        <!-- TAB: PRACTICE SCHEDULE -->
+        <div id="rehearsals-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Praise Team</span>
+            <h1>🗓️ Practice Schedule</h1>
+            <p>Upcoming rehearsals. Confirm your attendance so the Praise Leader knows who's coming.</p>
+          </div>
+          <div id="rehearsals-list">
+            <div class="loading-spin"></div>
+          </div>
+        </div>
+
+        <!-- TAB: PERFORMANCE HISTORY -->
+        <div id="history-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Praise Team</span>
+            <h1>🎤 Performance History</h1>
+            <p>Songs and services you've completed with the team.</p>
+          </div>
+          <div class="card">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Event</th><th>Song</th><th>Role</th><th>Status</th></tr></thead>
+                <tbody id="history-tbody">
+                  <tr><td colspan="4" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: MY REQUESTS -->
+        <div id="requests-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Praise Team</span>
+            <h1>✅ My Requests</h1>
+            <p>Send a request up to your Praise Leader / the General Overseer. Time off requests are approved directly by your Praise Leader.</p>
+          </div>
+          <div class="card">
+            <h2>New Request</h2>
+            <form id="request-form">
+              <div class="form-group">
+                <label>Request Type</label>
+                <select id="request-type">
+                  <option value="Time Off">Time Off</option>
+                  <option value="Schedule Change">Schedule Change</option>
+                  <option value="Equipment / Supplies">Equipment / Supplies</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Description</label><textarea id="request-description" required placeholder="What do you need?"></textarea></div>
+              <button type="submit" class="btn btn-primary">Send Request</button>
+              <div id="request-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>My Request History</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Status</th></tr></thead>
+                <tbody id="requests-tbody">
+                  <tr><td colspan="4" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUserId = null;
+  let myFullName = null;
+  let myLeadershipRole = null;
+  let myAssignments = [];
+  let eventsById = {};
+  let songsById = {};
+  let myAttendance = [];
+  let allRehearsals = [];
+  let myRequests = [];
+
+  const ROLE_LABELS = { lead_vocal:'Lead Vocal', backup_vocal:'Backup Vocal', instrumentalist:'Instrumentalist' };
+  function roleLabel(key){ return ROLE_LABELS[key] || key || '—'; }
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+  function fmtDate(d){ return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }); }
+  function fmtDateTime(d){ return d ? new Date(d).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—'; }
+
+  async function logAudit(action, details){
+    try {
+      await supabaseClient.from('audit_log').insert([{ actor_id: currentUserId, actor_name: myFullName, action, details }]);
+    } catch(err){ console.error('Audit log failed (non-blocking):', err); }
+  }
+
+  function initSidebarToggle(){
+    const toggle = document.getElementById('dash-menu-toggle');
+    const sidebar = document.getElementById('dash-sidebar');
+    if(toggle && sidebar) toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  }
+
+  function initTabNavigation(){
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabName = tab.getAttribute('data-tab');
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        const sidebar = document.getElementById('dash-sidebar');
+        if(sidebar) sidebar.classList.remove('open');
+      });
+    });
+  }
+
+  function initLogout(){
+    const logoutBtn = document.getElementById('logout-btn');
+    if(!logoutBtn) return;
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
+  }
+
+  // ---------- LOOKUPS ----------
+  async function loadEvents(){
+    const { data, error } = await supabaseClient.from('events').select('*');
+    if(error){ console.error('Error loading events:', error); return; }
+    (data || []).forEach(e => eventsById[e.id] = e);
+  }
+  function eventLabel(id){ return eventsById[id]?.title || '—'; }
+  function eventDateOf(id){ return eventsById[id] ? fmtDate(eventsById[id].event_date) : '—'; }
+
+  async function loadSongs(){
+    const { data, error } = await supabaseClient.from('songs').select('*');
+    if(error){ console.error('Error loading songs:', error); return; }
+    (data || []).forEach(s => songsById[s.id] = s);
+  }
+  function songLabel(id){ return id ? (songsById[id]?.title || '—') : '—'; }
+
+  // ---------- MY SONG ASSIGNMENTS ----------
+  async function loadMyAssignments(){
+    const { data, error } = await supabaseClient
+      .from('song_assignments')
+      .select('*')
+      .eq('member_id', currentUserId)
+      .order('created_at', { ascending:false });
+    if(error){ console.error('Error loading assignments:', error); return; }
+    myAssignments = data || [];
+    renderAssignmentsList();
+    renderHistory();
+    renderOverview();
+  }
+
+  function renderAssignmentsList(){
+    const container = document.getElementById('assignments-list');
+    const active = myAssignments.filter(a => a.status !== 'completed');
+    if(!active.length){
+      container.innerHTML = '<div class="empty-state">No song assignments yet. Your Praise Leader will place you on a song or instrument.</div>';
+      return;
+    }
+    container.innerHTML = active.map(a => {
+      const badgeClass = a.status === 'confirmed' ? 'badge-success' : a.status === 'declined' ? 'badge-danger' : 'badge-warning';
+      const canRespond = a.status === 'assigned';
+      return `
+        <div class="assignment-card">
+          <div class="assignment-top">
+            <div class="info">
+              <strong>${escapeHTML(eventLabel(a.event_id))} — ${escapeHTML(songLabel(a.song_id))}</strong>
+              <span>${escapeHTML(roleLabel(a.role))}${a.instrument ? ' · ' + escapeHTML(a.instrument) : ''} · ${eventDateOf(a.event_id)}${a.notes ? ' · ' + escapeHTML(a.notes) : ''}</span>
+              <div style="margin-top:6px;"><span class="badge ${badgeClass}">${escapeHTML(a.status)}</span></div>
+            </div>
+            <div class="assignment-actions">
+              ${canRespond ? `
+                <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="respondAssignment('${a.id}','confirmed')">Accept</button>
+                <button class="btn" style="padding:8px 16px; font-size:0.85rem; background:rgba(232,97,63,0.1); color:var(--coral);" onclick="respondAssignment('${a.id}','declined')">Decline</button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="comment-row">
+            <input type="text" id="comment-${a.id}" placeholder="Leave a comment for your Praise Leader..." value="${escapeHTML(a.member_comment || '')}">
+            <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.85rem;" onclick="saveComment('${a.id}')">Save Comment</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function respondAssignment(id, status){
+    try {
+      const { error } = await supabaseClient.from('song_assignments').update({ status }).eq('id', id);
+      if(error) throw error;
+      await logAudit('song_assignment_responded', { id, status });
+      await loadMyAssignments();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  async function saveComment(id){
+    const input = document.getElementById(`comment-${id}`);
+    try {
+      const { error } = await supabaseClient.from('song_assignments').update({ member_comment: input.value }).eq('id', id);
+      if(error) throw error;
+      await logAudit('song_assignment_comment_saved', { id });
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  function renderHistory(){
+    const tbody = document.getElementById('history-tbody');
+    const completed = myAssignments.filter(a => a.status === 'completed');
+    tbody.innerHTML = completed.length ? completed.map(a => `
+      <tr>
+        <td>${escapeHTML(eventLabel(a.event_id))}</td>
+        <td>${escapeHTML(songLabel(a.song_id))}</td>
+        <td>${escapeHTML(roleLabel(a.role))}</td>
+        <td><span class="badge badge-info">Completed</span></td>
+      </tr>
+    `).join('') : '<tr><td colspan="4" style="text-align:center; color:#999;">No completed performances yet.</td></tr>';
+  }
+
+  function renderOverview(){
+    const upcoming = myAssignments.filter(a => a.status === 'assigned' || a.status === 'confirmed');
+    const completed = myAssignments.filter(a => a.status === 'completed');
+    document.getElementById('stat-upcoming').textContent = upcoming.length;
+    document.getElementById('stat-completed').textContent = completed.length;
+    document.getElementById('stat-pending-requests').textContent = myRequests.filter(r => r.status === 'pending' || r.status === 'pending_supervisor').length;
+
+    const box = document.getElementById('next-duty-box');
+    const sorted = upcoming.slice().sort((a,b) => {
+      const da = eventsById[a.event_id]?.event_date || '9999-12-31';
+      const db = eventsById[b.event_id]?.event_date || '9999-12-31';
+      return new Date(da) - new Date(db);
+    });
+    if(!sorted.length){ box.innerHTML = 'No upcoming song assignment scheduled.'; return; }
+    const next = sorted[0];
+    box.innerHTML = `
+      <div style="font-weight:700; font-size:1.05rem; margin-bottom:4px;">${escapeHTML(eventLabel(next.event_id))} — ${escapeHTML(songLabel(next.song_id))}</div>
+      <div style="color:#666; font-size:0.9rem;">${escapeHTML(roleLabel(next.role))} · ${eventDateOf(next.event_id)}</div>
+    `;
+  }
+
+  // ---------- REHEARSALS / PRACTICE SCHEDULE ----------
+  async function loadRehearsals(){
+    const { data, error } = await supabaseClient.from('rehearsals').select('*').order('rehearsal_date', { ascending:true });
+    if(error){ console.error('Error loading rehearsals:', error); return; }
+    allRehearsals = data || [];
+    renderRehearsalsList();
+    renderNextRehearsal();
+  }
+
+  async function loadMyAttendance(){
+    const { data, error } = await supabaseClient
+      .from('rehearsal_attendance')
+      .select('*')
+      .eq('member_id', currentUserId);
+    if(error){ console.error('Error loading attendance:', error); return; }
+    myAttendance = data || [];
+    renderRehearsalsList();
+  }
+
+  function renderNextRehearsal(){
+    const box = document.getElementById('next-rehearsal-box');
+    const upcoming = allRehearsals.filter(r => new Date(r.rehearsal_date) >= new Date(new Date().toDateString()));
+    if(!upcoming.length){ box.innerHTML = 'No rehearsal scheduled yet.'; return; }
+    const next = upcoming[0];
+    box.innerHTML = `
+      <div style="font-weight:700; font-size:1.05rem; margin-bottom:4px;">${escapeHTML(next.title)}</div>
+      <div style="color:#666; font-size:0.9rem;">${fmtDate(next.rehearsal_date)}${next.rehearsal_time ? ' · ' + escapeHTML(next.rehearsal_time) : ''}${next.location ? ' · ' + escapeHTML(next.location) : ''}</div>
+    `;
+  }
+
+  function renderRehearsalsList(){
+    const container = document.getElementById('rehearsals-list');
+    const upcoming = allRehearsals.filter(r => new Date(r.rehearsal_date) >= new Date(new Date().toDateString()));
+    if(!upcoming.length){
+      container.innerHTML = '<div class="empty-state">No rehearsals scheduled yet.</div>';
+      return;
+    }
+    container.innerHTML = upcoming.map(r => {
+      const mine = myAttendance.find(a => a.rehearsal_id === r.id);
+      return `
+        <div class="assignment-card">
+          <div class="assignment-top">
+            <div class="info">
+              <strong>${escapeHTML(r.title)}</strong>
+              <span>${fmtDate(r.rehearsal_date)}${r.rehearsal_time ? ' · ' + escapeHTML(r.rehearsal_time) : ''}${r.location ? ' · ' + escapeHTML(r.location) : ''}${r.notes ? ' · ' + escapeHTML(r.notes) : ''}</span>
+              ${mine ? `<div style="margin-top:6px;"><span class="badge ${mine.status === 'present' ? 'badge-success' : 'badge-danger'}">${escapeHTML(mine.status)}</span></div>` : ''}
+            </div>
+            <div class="assignment-actions">
+              <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="confirmAttendance('${r.id}')">Confirm Attendance</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function confirmAttendance(rehearsalId){
+    try {
+      const existing = myAttendance.find(a => a.rehearsal_id === rehearsalId);
+      if(existing){
+        const { error } = await supabaseClient.from('rehearsal_attendance').update({ status: 'present' }).eq('id', existing.id);
+        if(error) throw error;
+      } else {
+        const { error } = await supabaseClient.from('rehearsal_attendance').insert([{
+          rehearsal_id: rehearsalId, member_id: currentUserId, status: 'present', marked_by: currentUserId
+        }]);
+        if(error) throw error;
+      }
+      await logAudit('rehearsal_attendance_confirmed', { rehearsal_id: rehearsalId });
+      await loadMyAttendance();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  // ---------- REQUESTS ----------
+  async function loadRequests(){
+    const { data, error } = await supabaseClient
+      .from('leadership_requests')
+      .select('*')
+      .eq('requested_by', currentUserId)
+      .order('created_at', { ascending:false });
+    if(error){ console.error('Error loading requests:', error); return; }
+    myRequests = data || [];
+    renderRequests();
+    renderOverview();
+  }
+
+  function requestStatusLabel(status){
+    if(status === 'pending_supervisor') return 'Awaiting Praise Leader';
+    return status;
+  }
+
+  function renderRequests(){
+    const tbody = document.getElementById('requests-tbody');
+    tbody.innerHTML = myRequests.length ? myRequests.map(r => {
+      const badgeClass = r.status === 'approved' ? 'badge-success' : r.status === 'rejected' ? 'badge-danger' : 'badge-warning';
+      return `
+        <tr>
+          <td>${fmtDate(r.created_at)}</td>
+          <td>${escapeHTML(r.request_type || '—')}</td>
+          <td>${escapeHTML(r.description)}</td>
+          <td><span class="badge ${badgeClass}">${escapeHTML(requestStatusLabel(r.status))}</span></td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="4" style="text-align:center; color:#999;">No requests sent yet.</td></tr>';
+  }
+
+  function initRequestForm(){
+    const form = document.getElementById('request-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('request-status');
+      // Praise leaders have no one above them but the G.O., so their own
+      // requests go straight in. Praise members route through their
+      // Praise Leader first for review (leave requests are approved
+      // directly by the Praise Leader without reaching the G.O.).
+      const startingStatus = myLeadershipRole === 'praise_leader' ? 'pending' : 'pending_supervisor';
+      const payload = {
+        requested_by: currentUserId,
+        department: 'Praise Team',
+        request_type: document.getElementById('request-type').value,
+        description: document.getElementById('request-description').value,
+        status: startingStatus
+      };
+      try {
+        status.textContent = 'Sending...';
+        const { error } = await supabaseClient.from('leadership_requests').insert([payload]);
+        if(error) throw error;
+        await logAudit('approval_requested', payload);
+        status.innerHTML = startingStatus === 'pending_supervisor'
+          ? '<span style="color:var(--leaf); font-weight:600;">✓ Sent to your Praise Leader for review!</span>'
+          : '<span style="color:var(--leaf); font-weight:600;">✓ Request sent!</span>';
+        form.reset();
+        await loadRequests();
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // ---------- AUTH GATE + INIT ----------
+  document.addEventListener('DOMContentLoaded', async () => {
+    initSidebarToggle();
+    initLogout();
+    initTabNavigation();
+
+    const loadingEl = document.getElementById('pm-loading');
+    const deniedEl = document.getElementById('pm-denied');
+    const appEl = document.getElementById('pm-app');
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if(!session){
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUserId = session.user.id;
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('members')
+      .select('full_name, role, leadership_role')
+      .eq('id', session.user.id)
+      .single();
+
+    const { data: activeRoleRows } = await supabaseClient
+      .from('member_leadership_roles')
+      .select('leadership_role')
+      .eq('member_id', session.user.id)
+      .eq('is_active', true);
+    const activeRoles = [
+      profile ? profile.leadership_role : null,
+      ...((activeRoleRows || []).map(r => r.leadership_role))
+    ].filter(Boolean);
+
+    const authorized = profile && (
+      profile.role === 'admin' ||
+      activeRoles.includes('praise_member') ||
+      activeRoles.includes('praise_leader')
+    );
+
+    if(profileError || !authorized){
+      loadingEl.style.display = 'none';
+      deniedEl.style.display = 'block';
+      return;
+    }
+    myFullName = profile.full_name;
+    myLeadershipRole = profile.leadership_role;
+
+    loadingEl.style.display = 'none';
+    appEl.style.display = 'block';
+
+    await loadEvents();
+    await loadSongs();
+    await loadMyAssignments();
+    await loadRehearsals();
+    await loadMyAttendance();
+    await loadRequests();
+
+    initRequestForm();
+  });
+</script>
+</body>
+</html>
