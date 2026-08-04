@@ -1846,6 +1846,114 @@ img{max-width:100%; display:block;}
       deniedEl.style.display = 'block';
       deniedEl.querySelector('.denied-state').innerHTML = `<strong>Initialization Error</strong><br>${escapeHTML(err.message)}<br><br><small>Check browser console for details. This usually means a Supabase table is missing or RLS policies are blocking access.</small>`;
     }
+
+
+    // FIX FOR ADMIN PANEL - FEEDBACK DISPLAY
+// Add this to the bottom of admin.html JavaScript section
+
+// Load feedback from correct table with correct columns
+async function loadFeedback() {
+  try {
+    // Query feedback table with CORRECT column names
+    const { data: feedbackData, error: feedbackError } = await window.supabaseClient
+      .from('feedback')
+      .select('id, member_id, rating, message, suggestions, created_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (feedbackError) {
+      console.error('Error loading feedback:', feedbackError);
+      return [];
+    }
+
+    return feedbackData || [];
+
+  } catch (err) {
+    console.error('Feedback load error:', err);
+    return [];
+  }
+}
+
+// Display feedback in the Contact Messages section
+async function displayFeedback() {
+  try {
+    const msgList = document.getElementById('msg-list');
+    if (!msgList) return;
+
+    const feedback = await loadFeedback();
+
+    if (!feedback || feedback.length === 0) {
+      msgList.innerHTML = `
+        <div style="text-align:center; padding:40px; color:#999;">
+          <p>No feedback received yet.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Get member names
+    const memberIds = [...new Set(feedback.map(f => f.member_id))];
+    const { data: members } = await window.supabaseClient
+      .from('members')
+      .select('id, full_name, email, phone')
+      .in('id', memberIds);
+
+    const memberMap = {};
+    (members || []).forEach(m => {
+      memberMap[m.id] = m;
+    });
+
+    // Display feedback
+    msgList.innerHTML = feedback.map(msg => {
+      const member = memberMap[msg.member_id] || { full_name: 'Unknown', email: '', phone: '' };
+      const date = new Date(msg.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      return `
+        <div style="margin-bottom:20px; padding:16px; background:#f9f9f9; border-radius:8px; border-left:4px solid var(--coral);">
+          <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
+            <div>
+              <h3 style="margin:0 0 4px 0; font-size:0.95rem; color:var(--navy);">${member.full_name}</h3>
+              <p style="margin:0; font-size:0.85rem; color:#666;">
+                ${member.email ? `📧 ${member.email}` : ''} 
+                ${member.phone ? `📱 ${member.phone}` : ''}
+              </p>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.8rem; color:#999;">${date}</div>
+              ${msg.rating ? `<div style="margin-top:4px; font-size:1rem;">⭐ ${msg.rating}/5</div>` : ''}
+            </div>
+          </div>
+          
+          ${msg.message ? `
+            <div style="margin:12px 0; padding:12px; background:white; border-radius:6px; font-size:0.9rem; line-height:1.5;">
+              <strong>Feedback:</strong><br>
+              ${msg.message}
+            </div>
+          ` : ''}
+          
+          ${msg.suggestions ? `
+            <div style="margin:12px 0; padding:12px; background:white; border-radius:6px; font-size:0.9rem; line-height:1.5;">
+              <strong>Suggestions:</strong><br>
+              ${msg.suggestions}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('Display feedback error:', err);
+  }
+}
+
+// Call this when the contact messages tab loads
+displayFeedback();
   });
 </script>
 </body>
