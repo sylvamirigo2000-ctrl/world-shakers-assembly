@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treasurer Panel — World Shakers Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#12213E; --navy-deep:#0B1730; --gold:#F0A93D; --coral:#E8613F;
+  --cream:#FBF7F0; --leaf:#4C7A4E; --ink:#1B2333; --line: rgba(18,33,62,0.12);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--cream); line-height:1.55;}
+h1,h2,h3{font-family:'Sora', sans-serif; font-weight:800; letter-spacing:-0.02em;}
+.mono{font-family:'Space Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; font-size:0.75rem;}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+
+.dash-shell{display:flex; min-height:100vh;}
+.dash-sidebar{
+  width:260px; flex-shrink:0; background:var(--navy-deep); color:var(--cream);
+  padding:28px 20px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Sora'; font-weight:800; font-size:1.05rem;}
+.brand .mark{width:40px; height:40px; border-radius:8px; object-fit:contain;}
+.dash-sidebar .brand{color:var(--cream); font-size:0.98rem; margin-bottom:36px;}
+.dash-nav{display:flex; flex-direction:column; gap:4px; flex:1;}
+.dash-nav a{
+  display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px;
+  font-size:0.9rem; font-weight:600; color:rgba(251,247,240,0.75); transition:background .15s ease, color .15s ease;
+  cursor:pointer;
+}
+.dash-nav a .ic{width:20px; text-align:center; flex-shrink:0;}
+.dash-nav a:hover{background:rgba(251,247,240,0.06); color:var(--cream);}
+.dash-nav a.active{background:linear-gradient(90deg,var(--gold),var(--coral)); color:var(--navy-deep);}
+.dash-logout{margin-top:20px; padding-top:20px; border-top:1px solid rgba(251,247,240,0.1);}
+
+.dash-main{flex:1; min-width:0;}
+.dash-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:20px 32px; border-bottom:1px solid var(--line); background:var(--cream);
+  position:sticky; top:0; z-index:10;
+}
+.dash-menu-toggle{display:none; background:none; border:none; cursor:pointer; flex-direction:column; gap:4px;}
+.dash-menu-toggle span{width:22px; height:2px; background:var(--navy);}
+.dash-content{padding:32px;}
+
+.page-head{margin-bottom:24px;}
+.page-head h1{font-size:1.6rem; margin-bottom:6px;}
+.page-head p{color:rgba(27,35,51,0.6); font-size:0.92rem;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.loading-spin{
+  width:34px; height:34px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--coral);
+  animation:spin 0.8s linear infinite; margin:60px auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.empty-state, .denied-state{
+  background:white; border:1px dashed var(--line); border-radius:16px; padding:40px;
+  text-align:center; color:rgba(27,35,51,0.55);
+}
+.denied-state{border-color:var(--coral); color:var(--coral);}
+
+.card{background:white; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:24px;}
+.card h2{font-size:1.2rem; margin-bottom:12px;}
+.card p{color:#666; margin-bottom:20px; font-size:0.9rem;}
+
+.btn{padding:12px 24px; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:0.9rem; transition:all .15s ease;}
+.btn-primary{background:linear-gradient(90deg, var(--gold), var(--coral)); color:var(--navy-deep);}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 4px 12px rgba(232,97,63,0.2);}
+.btn-secondary{background:var(--navy); color:white;}
+.btn-secondary:hover{background:var(--navy-deep);}
+.btn:disabled{opacity:0.6; cursor:not-allowed;}
+
+.form-group{margin-bottom:20px;}
+.form-group label{display:block; font-weight:600; margin-bottom:6px; font-size:0.9rem;}
+.form-group input, .form-group textarea, .form-group select{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px;
+  font-family:'Inter', sans-serif; font-size:0.9rem;
+}
+.form-group textarea{resize:vertical; min-height:100px;}
+
+.table-wrapper{overflow-x:auto; margin-top:20px;}
+.table{width:100%; border-collapse:collapse; font-size:0.9rem;}
+.table thead tr{border-bottom:2px solid var(--navy);}
+.table th{padding:12px; text-align:left; font-weight:700; background:rgba(240,169,61,0.05);}
+.table td{padding:12px; border-bottom:1px solid var(--line);}
+.table tr:hover{background:rgba(240,169,61,0.03);}
+
+.badge{display:inline-block; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:700; text-transform:uppercase;}
+.badge-success{background:rgba(76,122,78,0.1); color:var(--leaf);}
+.badge-warning{background:rgba(240,169,61,0.1); color:#E68F00;}
+.badge-info{background:rgba(18,33,62,0.1); color:var(--navy);}
+.badge-danger{background:rgba(232,97,63,0.12); color:var(--coral);}
+
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:16px; margin-bottom:24px;}
+.stat-box{background:white; border:1px solid var(--line); border-radius:14px; padding:20px;}
+.stat-box .stat-label{font-size:0.82rem; color:#666; margin-bottom:6px;}
+.stat-box .stat-value{font-size:1.6rem; font-weight:800; color:var(--navy);}
+.stat-box.accent-gold .stat-value{color:var(--gold);}
+.stat-box.accent-coral .stat-value{color:var(--coral);}
+.stat-box.accent-leaf .stat-value{color:var(--leaf);}
+
+.chart-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:20px;}
+.chart-card canvas{max-height:280px;}
+
+@media (max-width:820px){
+  .dash-sidebar{position:fixed; left:-280px; top:0; bottom:0; z-index:100; transition:left .2s ease; width:250px;}
+  .dash-sidebar.open{left:0;}
+  .dash-menu-toggle{display:flex;}
+  .dash-content{padding:22px;}
+  .dash-topbar{padding:16px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <div class="brand"><img src="assets/logo.png" alt="World Shakers Assembly logo" class="mark" onerror="this.style.display='none'"> World Shakers Assembly</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html"><span class="ic">🏠</span> Back to Dashboard</a>
+      <a class="nav-tab active" data-tab="overview" style="margin-top:12px;"><span class="ic">📊</span> Overview</a>
+      <a class="nav-tab" data-tab="offerings"><span class="ic">💰</span> Record Offering</a>
+      <a class="nav-tab" data-tab="expenses"><span class="ic">🧾</span> Expenses</a>
+      <a class="nav-tab" data-tab="balance"><span class="ic">📒</span> Balance</a>
+      <a class="nav-tab" data-tab="online-giving"><span class="ic">💳</span> Online Giving</a>
+      <a class="nav-tab" data-tab="reports"><span class="ic">📈</span> Reports & Charts</a>
+      <a class="nav-tab" data-tab="requests"><span class="ic">✅</span> Request Approval</a>
+      <a class="nav-tab" data-tab="announcements"><span class="ic">📣</span> Announcements</a>
+    </nav>
+    <div class="dash-logout">
+      <a href="#" id="logout-btn"><span class="ic">↩</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <button class="dash-menu-toggle" id="dash-menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+      <div class="brand" style="font-size:0.95rem;">Treasurer Panel</div>
+      <div></div>
+    </div>
+
+    <div class="dash-content">
+      <div id="treasurer-loading">
+        <div class="loading-spin"></div>
+      </div>
+
+      <div id="treasurer-denied" style="display:none;">
+        <div class="denied-state">
+          <strong>Treasurer access only.</strong><br>
+          Your account isn't assigned the Treasurer role. Ask the General Overseer to assign you in the Admin Panel's Leadership Roles tab.<br><br>
+          If you're the General Overseer looking for financial summaries or fund request approvals, that's in the <strong>Admin Panel → Treasury Oversight</strong> tab.
+        </div>
+      </div>
+
+      <div id="treasurer-app" style="display:none;">
+
+        <!-- TAB: OVERVIEW -->
+        <div id="overview-tab" class="tab-content active">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Treasurer</span>
+            <h1>📊 Treasury Overview</h1>
+            <p>A snapshot of today, this week, and this month.</p>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-box accent-gold">
+              <div class="stat-label">Today's Offering</div>
+              <div class="stat-value" id="stat-today">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Weekly Income</div>
+              <div class="stat-value" id="stat-week">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Monthly Income</div>
+              <div class="stat-value" id="stat-month">—</div>
+            </div>
+            <div class="stat-box accent-coral">
+              <div class="stat-label">Expenses (This Month)</div>
+              <div class="stat-value" id="stat-expenses">—</div>
+            </div>
+            <div class="stat-box accent-leaf">
+              <div class="stat-label">Current Balance</div>
+              <div class="stat-value" id="stat-balance">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Pending Approval</div>
+              <div class="stat-value" id="stat-pending">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Contribution Requests</div>
+              <div class="stat-value" id="stat-contrib-requests">—</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Recent Activity</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th></tr>
+                </thead>
+                <tbody id="recent-activity-tbody">
+                  <tr><td colspan="4" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: RECORD OFFERING -->
+        <div id="offerings-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Treasurer</span>
+            <h1>💰 Record Offering</h1>
+            <p>Log offerings collected at each service or event.</p>
+          </div>
+
+          <div class="card">
+            <h2>New Offering Entry</h2>
+            <form id="offering-form">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label>Date</label>
+                  <input type="date" id="offering-date" required>
+                </div>
+                <div class="form-group">
+                  <label>Amount</label>
+                  <input type="number" step="0.01" min="0" id="offering-amount" placeholder="0.00" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Event Name</label>
+                <input type="text" id="offering-event" placeholder="e.g., Sunday First Service">
+              </div>
+              <div class="form-group">
+                <label>Service Type</label>
+                <select id="offering-service-type">
+                  <option value="Sunday Service">Sunday Service</option>
+                  <option value="Midweek Service">Midweek Service</option>
+                  <option value="Special Program">Special Program</option>
+                  <option value="Crusade">Crusade</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">+ Record Offering</button>
+              <div id="offering-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Offering History</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr><th>Date</th><th>Event</th><th>Service Type</th><th>Amount</th><th>Recorded By</th></tr>
+                </thead>
+                <tbody id="offerings-tbody">
+                  <tr><td colspan="5" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: EXPENSES -->
+        <div id="expenses-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Treasurer</span>
+            <h1>🧾 Expenses</h1>
+            <p>Log church expenses with a reason and supporting receipt link.</p>
+          </div>
+
+          <div class="card">
+            <h2>New Expense Entry</h2>
+            <form id="expense-form">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label>Date</label>
+                  <input type="date" id="expense-date" required>
+                </div>
+                <div class="form-group">
+                  <label>Amount</label>
+                  <input type="number" step="0.01" min="0" id="expense-amount" placeholder="0.00" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Category</label>
+                <select id="expense-category">
+                  <option value="Utilities">Utilities</option>
+                  <option value="Maintenance">Maintenance</option>
+                  <option value="Salaries">Salaries</option>
+                  <option value="Events">Events</option>
+                  <option value="Equipment">Equipment</option>
+                  <option value="Missions">Missions</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Reason</label>
+                <textarea id="expense-reason" placeholder="What was this expense for?"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Receipt Link (optional)</label>
+                <input type="text" id="expense-receipt" placeholder="Paste a link to the scanned receipt...">
+              </div>
+              <button type="submit" class="btn btn-primary">+ Record Expense</button>
+              <div id="expense-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Expense History</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr><th>Date</th><th>Category</th><th>Reason</th><th>Amount</th><th>Receipt</th></tr>
+                </thead>
+                <tbody id="expenses-tbody">
+                  <tr><td colspan="5" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: BALANCE -->
+        <div id="balance-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Treasurer</span>
+            <h1>📒 Balance Sheet</h1>
+            <p>Opening balance, total income, total expenses, and closing balance for the selected year.</p>
+          </div>
+
+          <div class="card">
+            <h2>Select Year</h2>
+            <div class="form-group" style="max-width:200px;">
+              <select id="balance-year-select"></select>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-box">
+                <div class="stat-label">Opening Balance</div>
+                <div class="stat-value" id="balance-opening">—</div>
+              </div>
+              <div class="stat-box accent-leaf">
+                <div class="stat-label">Total Income</div>
+                <div class="stat-value" id="balance-income">—</div>
+              </div>
+              <div class="stat-box accent-coral">
+                <div class="stat-label">Total Expenses</div>
+                <div class="stat-value" id="balance-expenses">—</div>
+              </div>
+              <div class="stat-box accent-gold">
+                <div class="stat-label">Closing Balance</div>
+                <div class="stat-value" id="balance-closing">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Set Opening Balance</h2>
+            <p>Only needed once per year, or to make a correction.</p>
+            <form id="opening-balance-form" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+              <div class="form-group" style="flex:1; min-width:150px; margin-bottom:0;">
+                <label>Year</label>
+                <input type="number" id="opening-balance-year" placeholder="2026" required>
+              </div>
+              <div class="form-group" style="flex:1; min-width:150px; margin-bottom:0;">
+                <label>Opening Balance</label>
+                <input type="number" step="0.01" id="opening-balance-amount" placeholder="0.00" required>
+              </div>
+              <button type="submit" class="btn btn-secondary" style="height:44px;">Save</button>
+            </form>
+            <div id="opening-balance-status" style="margin-top:16px; color:#666;"></div>
+          </div>
+        </div>
+
+        <!-- TAB: ONLINE GIVING -->
+        <div id="online-giving-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Treasurer</span>
+            <h1>💳 Online Giving</h1>
+            <p>Log giving received via bank transfer, mobile money, or online payment.</p>
+          </div>
+
+          <div class="card">
+            <h2>New Online Giving Entry</h2>
+            <form id="online-giving-form">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label>Date</label>
+                  <input type="date" id="giving-date" required>
+                </div>
+                <div class="form-group">
+                  <label>Amount</label>
+                  <input type="number" step="0.01" min="0" id="giving-amount" placeholder="0.00" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Giver Name (member or visitor)</label>
+                <input type="text" id="giving-name" placeholder="Full name">
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label>Payment Method</label>
+                  <select id="giving-method">
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Mobile Money">Mobile Money</option>
+                    <option value="Card Payment">Card Payment</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Reference Number</label>
+                  <input type="text" id="giving-reference" placeholder="Transaction reference">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">+ Record Giving</button>
+              <div id="giving-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Online Giving History</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr><th>Date</th><th>Giver</th><th>Method</th><th>Reference</th><th>Amount</th></tr>
+                </thead>
+                <tbody id="giving-tbody">
+                  <tr><td colspan="5" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: REPORTS & CHARTS -->
+        <div id="reports-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Treasurer</span>
+            <h1>📈 Reports & Charts</h1>
+            <p>Visual breakdown of income and expenses. Export to CSV for Excel, or print to PDF.</p>
+          </div>
+
+          <div class="card">
+            <h2>Export</h2>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <button id="export-csv-btn" class="btn btn-secondary">⬇️ Download CSV (Excel)</button>
+              <button id="export-pdf-btn" class="btn btn-secondary">🖨️ Print / Save PDF</button>
+            </div>
+          </div>
+
+          <div class="chart-grid">
+            <div class="card chart-card">
+              <h2>Expenses by Category</h2>
+              <canvas id="expense-pie-chart"></canvas>
+            </div>
+            <div class="card chart-card">
+              <h2>Weekly Income (Last 8 Weeks)</h2>
+              <canvas id="weekly-bar-chart"></canvas>
+            </div>
+            <div class="card chart-card" style="grid-column:1 / -1;">
+              <h2>Monthly Income vs Expenses Trend</h2>
+              <canvas id="monthly-line-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: REQUEST APPROVAL -->
+        <div id="requests-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Treasurer</span>
+            <h1>✅ Request Approval</h1>
+            <p>Send a fund request to the General Overseer for approval.</p>
+          </div>
+
+          <div class="card">
+            <h2>New Request</h2>
+            <form id="request-form">
+              <div class="form-group">
+                <label>Request Amount</label>
+                <input type="number" step="0.01" min="0" id="request-amount" required>
+              </div>
+              <div class="form-group">
+                <label>Reason</label>
+                <textarea id="request-reason" placeholder="Why is this needed?" required></textarea>
+              </div>
+              <div class="form-group">
+                <label>Supporting Document Link (optional)</label>
+                <input type="text" id="request-doc" placeholder="Paste a link to any supporting document...">
+              </div>
+              <button type="submit" class="btn btn-primary">Send to General Overseer</button>
+              <div id="request-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>My Requests</h2>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr><th>Date</th><th>Amount</th><th>Reason</th><th>Status</th></tr>
+                </thead>
+                <tbody id="requests-tbody">
+                  <tr><td colspan="4" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: ANNOUNCEMENTS -->
+        <div id="announcements-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Treasurer</span>
+            <h1>📣 Treasury Announcements</h1>
+            <p>Send giving reminders and appeals to the church.</p>
+          </div>
+
+          <div class="card">
+            <h2>New Announcement</h2>
+            <form id="treasury-announcement-form">
+              <div class="form-group">
+                <label>Type</label>
+                <select id="announcement-type">
+                  <option value="Contribution Reminder">Contribution Reminder</option>
+                  <option value="Building Fund">Building Fund</option>
+                  <option value="Mission Giving">Mission Giving</option>
+                  <option value="Special Seed">Special Seed</option>
+                  <option value="Emergency Appeal">Emergency Appeal</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="announcement-title" required>
+              </div>
+              <div class="form-group">
+                <label>Message</label>
+                <textarea id="announcement-body" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">📤 Send Announcement</button>
+              <div id="announcement-status" style="margin-top:16px; color:#666;"></div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+  const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUserId = null;
+  let allMembersById = {};
+  let offeringsData = [];
+  let expensesData = [];
+  let givingData = [];
+  let requestsData = [];
+  let expensePieChart, weeklyBarChart, monthlyLineChart;
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  function fmtMoney(n){
+    const num = Number(n) || 0;
+    return num.toLocaleString('en-US', { style:'currency', currency:'USD' });
+  }
+
+  function fmtDate(d){
+    return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  }
+
+  async function logAudit(action, details){
+    try {
+      await supabaseClient.from('audit_log').insert([{
+        actor_id: currentUserId,
+        actor_name: allMembersById[currentUserId]?.full_name || null,
+        action,
+        details
+      }]);
+    } catch(err){ console.error('Audit log failed (non-blocking):', err); }
+  }
+
+  function initSidebarToggle(){
+    const toggle = document.getElementById('dash-menu-toggle');
+    const sidebar = document.getElementById('dash-sidebar');
+    if(toggle && sidebar) toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  }
+
+  function initTabNavigation(){
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabName = tab.getAttribute('data-tab');
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        const sidebar = document.getElementById('dash-sidebar');
+        if(sidebar) sidebar.classList.remove('open');
+        if(tabName === 'reports') renderCharts();
+      });
+    });
+  }
+
+  function initLogout(){
+    const logoutBtn = document.getElementById('logout-btn');
+    if(!logoutBtn) return;
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
+  }
+
+  // ---------- DATA LOADING ----------
+  async function loadAllData(){
+    const [{ data: offerings }, { data: expenses }, { data: giving }, { data: requests }, { data: members }] = await Promise.all([
+      supabaseClient.from('offerings').select('*').order('offering_date', { ascending:false }),
+      supabaseClient.from('expenses').select('*').order('expense_date', { ascending:false }),
+      supabaseClient.from('online_giving').select('*').order('giving_date', { ascending:false }),
+      supabaseClient.from('treasury_requests').select('*').order('created_at', { ascending:false }),
+      supabaseClient.from('members').select('id, full_name')
+    ]);
+
+    offeringsData = offerings || [];
+    expensesData = expenses || [];
+    givingData = giving || [];
+    requestsData = requests || [];
+    (members || []).forEach(m => allMembersById[m.id] = m);
+
+    renderOverview();
+    renderOfferingsTable();
+    renderExpensesTable();
+    renderGivingTable();
+    renderRequestsTable();
+    populateBalanceYears();
+    renderBalance();
+  }
+
+  // ---------- OVERVIEW ----------
+  function renderOverview(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const todayTotal = offeringsData.filter(o => sameDay(new Date(o.offering_date), today)).reduce((s,o)=>s+Number(o.amount),0);
+    const weekTotal = offeringsData.filter(o => new Date(o.offering_date) >= weekAgo).reduce((s,o)=>s+Number(o.amount),0)
+      + givingData.filter(g => new Date(g.giving_date) >= weekAgo).reduce((s,g)=>s+Number(g.amount),0);
+    const monthOfferings = offeringsData.filter(o => new Date(o.offering_date) >= monthStart).reduce((s,o)=>s+Number(o.amount),0);
+    const monthGiving = givingData.filter(g => new Date(g.giving_date) >= monthStart).reduce((s,g)=>s+Number(g.amount),0);
+    const monthExpenses = expensesData.filter(e => new Date(e.expense_date) >= monthStart).reduce((s,e)=>s+Number(e.amount),0);
+
+    const totalIncome = offeringsData.reduce((s,o)=>s+Number(o.amount),0) + givingData.reduce((s,g)=>s+Number(g.amount),0);
+    const totalExpenses = expensesData.reduce((s,e)=>s+Number(e.amount),0);
+    const balance = totalIncome - totalExpenses;
+
+    const pendingCount = requestsData.filter(r => r.status === 'pending').length;
+
+    document.getElementById('stat-today').textContent = fmtMoney(todayTotal);
+    document.getElementById('stat-week').textContent = fmtMoney(weekTotal);
+    document.getElementById('stat-month').textContent = fmtMoney(monthOfferings + monthGiving);
+    document.getElementById('stat-expenses').textContent = fmtMoney(monthExpenses);
+    document.getElementById('stat-balance').textContent = fmtMoney(balance);
+    document.getElementById('stat-pending').textContent = pendingCount;
+    document.getElementById('stat-contrib-requests').textContent = requestsData.length;
+
+    const activity = []
+      .concat(offeringsData.slice(0,5).map(o => ({ date:o.offering_date, type:'Offering', desc:o.event_name || o.service_type || '—', amount:o.amount, sign:1 })))
+      .concat(expensesData.slice(0,5).map(e => ({ date:e.expense_date, type:'Expense', desc:e.reason || e.category || '—', amount:e.amount, sign:-1 })))
+      .concat(givingData.slice(0,5).map(g => ({ date:g.giving_date, type:'Online Giving', desc:g.visitor_name || 'Giving', amount:g.amount, sign:1 })))
+      .sort((a,b) => new Date(b.date) - new Date(a.date))
+      .slice(0,10);
+
+    const tbody = document.getElementById('recent-activity-tbody');
+    tbody.innerHTML = activity.length ? activity.map(a => `
+      <tr>
+        <td>${fmtDate(a.date)}</td>
+        <td><span class="badge ${a.sign > 0 ? 'badge-success' : 'badge-danger'}">${escapeHTML(a.type)}</span></td>
+        <td>${escapeHTML(a.desc)}</td>
+        <td>${a.sign > 0 ? '' : '-'}${fmtMoney(a.amount)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="4" style="text-align:center; color:#999;">No activity yet.</td></tr>';
+  }
+
+  function sameDay(a,b){
+    return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  }
+
+  // ---------- OFFERINGS ----------
+  function renderOfferingsTable(){
+    const tbody = document.getElementById('offerings-tbody');
+    tbody.innerHTML = offeringsData.length ? offeringsData.map(o => `
+      <tr>
+        <td>${fmtDate(o.offering_date)}</td>
+        <td>${escapeHTML(o.event_name || '—')}</td>
+        <td>${escapeHTML(o.service_type || '—')}</td>
+        <td>${fmtMoney(o.amount)}</td>
+        <td>${escapeHTML(allMembersById[o.recorded_by]?.full_name || '—')}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" style="text-align:center; color:#999;">No offerings recorded yet.</td></tr>';
+  }
+
+  function initOfferingForm(){
+    const form = document.getElementById('offering-form');
+    document.getElementById('offering-date').value = new Date().toISOString().split('T')[0];
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('offering-status');
+      const payload = {
+        offering_date: document.getElementById('offering-date').value,
+        event_name: document.getElementById('offering-event').value,
+        service_type: document.getElementById('offering-service-type').value,
+        amount: parseFloat(document.getElementById('offering-amount').value),
+        recorded_by: currentUserId
+      };
+      try {
+        status.textContent = 'Saving...';
+        const { error } = await supabaseClient.from('offerings').insert([payload]);
+        if(error) throw error;
+        await logAudit('offering_recorded', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Offering recorded!</span>';
+        form.reset();
+        document.getElementById('offering-date').value = new Date().toISOString().split('T')[0];
+        await loadAllData();
+        setTimeout(()=>{ status.textContent=''; }, 3000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // ---------- EXPENSES ----------
+  function renderExpensesTable(){
+    const tbody = document.getElementById('expenses-tbody');
+    tbody.innerHTML = expensesData.length ? expensesData.map(e => `
+      <tr>
+        <td>${fmtDate(e.expense_date)}</td>
+        <td>${escapeHTML(e.category || '—')}</td>
+        <td>${escapeHTML(e.reason || '—')}</td>
+        <td>${fmtMoney(e.amount)}</td>
+        <td>${e.receipt_url ? `<a href="${escapeHTML(e.receipt_url)}" target="_blank" style="color:var(--coral); text-decoration:underline;">View</a>` : '—'}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" style="text-align:center; color:#999;">No expenses recorded yet.</td></tr>';
+  }
+
+  function initExpenseForm(){
+    const form = document.getElementById('expense-form');
+    document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('expense-status');
+      const payload = {
+        expense_date: document.getElementById('expense-date').value,
+        category: document.getElementById('expense-category').value,
+        amount: parseFloat(document.getElementById('expense-amount').value),
+        reason: document.getElementById('expense-reason').value,
+        receipt_url: document.getElementById('expense-receipt').value || null,
+        recorded_by: currentUserId
+      };
+      try {
+        status.textContent = 'Saving...';
+        const { error } = await supabaseClient.from('expenses').insert([payload]);
+        if(error) throw error;
+        await logAudit('expense_recorded', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Expense recorded!</span>';
+        form.reset();
+        document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+        await loadAllData();
+        setTimeout(()=>{ status.textContent=''; }, 3000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // ---------- ONLINE GIVING ----------
+  function renderGivingTable(){
+    const tbody = document.getElementById('giving-tbody');
+    tbody.innerHTML = givingData.length ? givingData.map(g => `
+      <tr>
+        <td>${fmtDate(g.giving_date)}</td>
+        <td>${escapeHTML(g.visitor_name || allMembersById[g.member_id]?.full_name || '—')}</td>
+        <td>${escapeHTML(g.payment_method || '—')}</td>
+        <td>${escapeHTML(g.reference_number || '—')}</td>
+        <td>${fmtMoney(g.amount)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" style="text-align:center; color:#999;">No online giving recorded yet.</td></tr>';
+  }
+
+  function initGivingForm(){
+    const form = document.getElementById('online-giving-form');
+    document.getElementById('giving-date').value = new Date().toISOString().split('T')[0];
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('giving-status');
+      const payload = {
+        giving_date: document.getElementById('giving-date').value,
+        visitor_name: document.getElementById('giving-name').value,
+        payment_method: document.getElementById('giving-method').value,
+        reference_number: document.getElementById('giving-reference').value,
+        amount: parseFloat(document.getElementById('giving-amount').value),
+        recorded_by: currentUserId
+      };
+      try {
+        status.textContent = 'Saving...';
+        const { error } = await supabaseClient.from('online_giving').insert([payload]);
+        if(error) throw error;
+        await logAudit('online_giving_recorded', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Giving recorded!</span>';
+        form.reset();
+        document.getElementById('giving-date').value = new Date().toISOString().split('T')[0];
+        await loadAllData();
+        setTimeout(()=>{ status.textContent=''; }, 3000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // ---------- BALANCE ----------
+  let openingBalances = {};
+
+  function populateBalanceYears(){
+    const select = document.getElementById('balance-year-select');
+    const years = new Set();
+    const thisYear = new Date().getFullYear();
+    years.add(thisYear);
+    offeringsData.forEach(o => years.add(new Date(o.offering_date).getFullYear()));
+    expensesData.forEach(e => years.add(new Date(e.expense_date).getFullYear()));
+    const sorted = Array.from(years).sort((a,b)=>b-a);
+    select.innerHTML = sorted.map(y => `<option value="${y}">${y}</option>`).join('');
+    select.value = thisYear;
+    select.onchange = renderBalance;
+  }
+
+  async function loadOpeningBalances(){
+    const { data } = await supabaseClient.from('treasury_opening_balance').select('*');
+    openingBalances = {};
+    (data || []).forEach(row => openingBalances[row.year] = Number(row.opening_balance));
+  }
+
+  function renderBalance(){
+    const year = parseInt(document.getElementById('balance-year-select').value, 10);
+    const opening = openingBalances[year] || 0;
+    const income = offeringsData.filter(o => new Date(o.offering_date).getFullYear() === year).reduce((s,o)=>s+Number(o.amount),0)
+      + givingData.filter(g => new Date(g.giving_date).getFullYear() === year).reduce((s,g)=>s+Number(g.amount),0);
+    const exp = expensesData.filter(e => new Date(e.expense_date).getFullYear() === year).reduce((s,e)=>s+Number(e.amount),0);
+    const closing = opening + income - exp;
+
+    document.getElementById('balance-opening').textContent = fmtMoney(opening);
+    document.getElementById('balance-income').textContent = fmtMoney(income);
+    document.getElementById('balance-expenses').textContent = fmtMoney(exp);
+    document.getElementById('balance-closing').textContent = fmtMoney(closing);
+  }
+
+  function initOpeningBalanceForm(){
+    const form = document.getElementById('opening-balance-form');
+    document.getElementById('opening-balance-year').value = new Date().getFullYear();
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('opening-balance-status');
+      const year = parseInt(document.getElementById('opening-balance-year').value, 10);
+      const amount = parseFloat(document.getElementById('opening-balance-amount').value);
+      try {
+        status.textContent = 'Saving...';
+        const { error } = await supabaseClient
+          .from('treasury_opening_balance')
+          .upsert([{ year, opening_balance: amount, updated_by: currentUserId, updated_at: new Date().toISOString() }], { onConflict: 'year' });
+        if(error) throw error;
+        await logAudit('opening_balance_set', { year, amount });
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Opening balance saved!</span>';
+        await loadOpeningBalances();
+        populateBalanceYears();
+        document.getElementById('balance-year-select').value = year;
+        renderBalance();
+        setTimeout(()=>{ status.textContent=''; }, 3000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // ---------- REQUESTS ----------
+  function renderRequestsTable(){
+    const tbody = document.getElementById('requests-tbody');
+    tbody.innerHTML = requestsData.length ? requestsData.map(r => {
+      const badgeClass = r.status === 'approved' ? 'badge-success' : r.status === 'rejected' ? 'badge-danger' : 'badge-warning';
+      return `
+        <tr>
+          <td>${fmtDate(r.created_at)}</td>
+          <td>${fmtMoney(r.request_amount)}</td>
+          <td>${escapeHTML(r.reason)}</td>
+          <td><span class="badge ${badgeClass}">${escapeHTML(r.status)}</span></td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="4" style="text-align:center; color:#999;">No requests sent yet.</td></tr>';
+  }
+
+  function initRequestForm(){
+    const form = document.getElementById('request-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('request-status');
+      const payload = {
+        requested_by: currentUserId,
+        request_amount: parseFloat(document.getElementById('request-amount').value),
+        reason: document.getElementById('request-reason').value,
+        supporting_document_url: document.getElementById('request-doc').value || null
+      };
+      try {
+        status.textContent = 'Sending...';
+        const { error } = await supabaseClient.from('treasury_requests').insert([payload]);
+        if(error) throw error;
+        await logAudit('approval_requested', payload);
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Request sent to the General Overseer!</span>';
+        form.reset();
+        await loadAllData();
+        setTimeout(()=>{ status.textContent=''; }, 3000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // ---------- ANNOUNCEMENTS ----------
+  function initAnnouncementForm(){
+    const form = document.getElementById('treasury-announcement-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('announcement-status');
+      const type = document.getElementById('announcement-type').value;
+      const title = `[${type}] ${document.getElementById('announcement-title').value}`;
+      const body = document.getElementById('announcement-body').value;
+      try {
+        status.textContent = 'Sending...';
+        const { error } = await supabaseClient.from('announcements').insert([{ title, body }]);
+        if(error) throw error;
+        await logAudit('announcement_created', { type, title });
+        status.innerHTML = '<span style="color:var(--leaf); font-weight:600;">✓ Announcement sent!</span>';
+        form.reset();
+        setTimeout(()=>{ status.textContent=''; }, 3000);
+      } catch(err){
+        status.innerHTML = `<span style="color:var(--coral);">Error: ${err.message}</span>`;
+      }
+    });
+  }
+
+  // ---------- CHARTS ----------
+  function renderCharts(){
+    // Pie: expenses by category
+    const categoryTotals = {};
+    expensesData.forEach(e => {
+      const cat = e.category || 'Other';
+      categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(e.amount);
+    });
+    const pieCtx = document.getElementById('expense-pie-chart');
+    if(expensePieChart) expensePieChart.destroy();
+    expensePieChart = new Chart(pieCtx, {
+      type:'pie',
+      data:{
+        labels: Object.keys(categoryTotals).length ? Object.keys(categoryTotals) : ['No data'],
+        datasets:[{ data: Object.keys(categoryTotals).length ? Object.values(categoryTotals) : [1],
+          backgroundColor:['#F0A93D','#E8613F','#12213E','#4C7A4E','#8a8a8a','#c9a0dc','#5bc0de'] }]
+      },
+      options:{ plugins:{ legend:{ position:'bottom' } } }
+    });
+
+    // Bar: weekly income last 8 weeks
+    const weekLabels = [];
+    const weekTotals = [];
+    for(let i=7; i>=0; i--){
+      const start = new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate() - (start.getDay() + 7*i));
+      const end = new Date(start); end.setDate(end.getDate() + 7);
+      const total = offeringsData.filter(o => { const d = new Date(o.offering_date); return d >= start && d < end; }).reduce((s,o)=>s+Number(o.amount),0)
+        + givingData.filter(g => { const d = new Date(g.giving_date); return d >= start && d < end; }).reduce((s,g)=>s+Number(g.amount),0);
+      weekLabels.push(start.toLocaleDateString('en-US',{month:'short', day:'numeric'}));
+      weekTotals.push(total);
+    }
+    const barCtx = document.getElementById('weekly-bar-chart');
+    if(weeklyBarChart) weeklyBarChart.destroy();
+    weeklyBarChart = new Chart(barCtx, {
+      type:'bar',
+      data:{ labels: weekLabels, datasets:[{ label:'Income', data: weekTotals, backgroundColor:'#F0A93D' }] },
+      options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+    });
+
+    // Line: monthly income vs expenses, last 6 months
+    const monthLabels = [];
+    const monthIncome = [];
+    const monthExpense = [];
+    for(let i=5; i>=0; i--){
+      const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
+      const monthStart = new Date(d.getFullYear(), d.getMonth(), 1);
+      const monthEnd = new Date(d.getFullYear(), d.getMonth()+1, 1);
+      const income = offeringsData.filter(o => { const od = new Date(o.offering_date); return od >= monthStart && od < monthEnd; }).reduce((s,o)=>s+Number(o.amount),0)
+        + givingData.filter(g => { const gd = new Date(g.giving_date); return gd >= monthStart && gd < monthEnd; }).reduce((s,g)=>s+Number(g.amount),0);
+      const expense = expensesData.filter(e => { const ed = new Date(e.expense_date); return ed >= monthStart && ed < monthEnd; }).reduce((s,e)=>s+Number(e.amount),0);
+      monthLabels.push(monthStart.toLocaleDateString('en-US',{month:'short', year:'2-digit'}));
+      monthIncome.push(income);
+      monthExpense.push(expense);
+    }
+    const lineCtx = document.getElementById('monthly-line-chart');
+    if(monthlyLineChart) monthlyLineChart.destroy();
+    monthlyLineChart = new Chart(lineCtx, {
+      type:'line',
+      data:{
+        labels: monthLabels,
+        datasets:[
+          { label:'Income', data: monthIncome, borderColor:'#4C7A4E', backgroundColor:'rgba(76,122,78,0.15)', fill:true, tension:0.3 },
+          { label:'Expenses', data: monthExpense, borderColor:'#E8613F', backgroundColor:'rgba(232,97,63,0.15)', fill:true, tension:0.3 }
+        ]
+      },
+      options:{ scales:{ y:{ beginAtZero:true } } }
+    });
+  }
+
+  // ---------- EXPORT ----------
+  function initExport(){
+    document.getElementById('export-csv-btn').addEventListener('click', () => {
+      const rows = [['Type','Date','Description','Category/Method','Amount']];
+      offeringsData.forEach(o => rows.push(['Offering', o.offering_date, o.event_name || '', o.service_type || '', o.amount]));
+      givingData.forEach(g => rows.push(['Online Giving', g.giving_date, g.visitor_name || '', g.payment_method || '', g.amount]));
+      expensesData.forEach(e => rows.push(['Expense', e.expense_date, e.reason || '', e.category || '', -Math.abs(e.amount)]));
+      const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type:'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `treasury-report-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      logAudit('report_downloaded', { format:'csv' });
+    });
+
+    document.getElementById('export-pdf-btn').addEventListener('click', () => {
+      logAudit('report_downloaded', { format:'pdf' });
+      window.print();
+    });
+  }
+
+  // ---------- AUTH GATE + INIT ----------
+  document.addEventListener('DOMContentLoaded', async () => {
+    initSidebarToggle();
+    initLogout();
+    initTabNavigation();
+
+    const loadingEl = document.getElementById('treasurer-loading');
+    const deniedEl = document.getElementById('treasurer-denied');
+    const appEl = document.getElementById('treasurer-app');
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if(!session){
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUserId = session.user.id;
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('members')
+      .select('role, leadership_role')
+      .eq('id', session.user.id)
+      .single();
+
+    const { data: activeRoleRows } = await supabaseClient
+      .from('member_leadership_roles')
+      .select('leadership_role')
+      .eq('member_id', session.user.id)
+      .eq('is_active', true);
+    const activeRoles = [
+      profile ? profile.leadership_role : null,
+      ...((activeRoleRows || []).map(r => r.leadership_role))
+    ].filter(Boolean);
+
+    const authorized = profile && (
+      profile.role === 'admin' ||
+      activeRoles.includes('treasurer')
+    );
+
+    if(profileError || !authorized){
+      loadingEl.style.display = 'none';
+      deniedEl.style.display = 'block';
+      return;
+    }
+
+    loadingEl.style.display = 'none';
+    appEl.style.display = 'block';
+
+    await loadOpeningBalances();
+    await loadAllData();
+    initOfferingForm();
+    initExpenseForm();
+    initGivingForm();
+    initOpeningBalanceForm();
+    initRequestForm();
+    initAnnouncementForm();
+    initExport();
+  });
+</script>
+</body>
+</html>
