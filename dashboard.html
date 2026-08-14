@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WSA Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ============================================================
+       DESIGN SYSTEM - COLOR VARIABLES (EXACT FROM IMAGE)
+       ============================================================ */
+    :root {
+      --navy: #121F3E;
+      --navy-deep: #0B1730;
+      --gold: #D4A547;
+      --coral: #E8613F;
+      --leaf: #4C7A4E;
+      --cream: #FBF7F0;
+      --ink: #1B2333;
+      --line: #E2DCD2;
+      --bg-light: #F5F1EB;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    /* ============================================================
+       LAYOUT - Dashboard Shell
+       ============================================================ */
+    .dash-shell { display: flex; min-height: 100vh; }
+
+    /* ---------- SIDEBAR ---------- */
+    .dash-sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background-color: var(--navy-deep);
+      color: var(--cream);
+      padding: 24px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(251, 247, 240, 0.1);
+    }
+
+    .sidebar-brand .mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    .sidebar-brand .text {
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .sidebar-section {
+      margin-bottom: 28px;
+    }
+
+    .sidebar-section:last-of-type {
+      margin-bottom: auto;
+    }
+
+    .sidebar-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(251, 247, 240, 0.5);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: rgba(251, 247, 240, 0.8);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: 'Inter', sans-serif;
+      text-align: left;
+      width: 100%;
+    }
+
+    .sidebar-link:hover {
+      color: var(--cream);
+      background-color: rgba(251, 247, 240, 0.1);
+    }
+
+    .sidebar-link.active {
+      background: linear-gradient(90deg, var(--coral), #F59E5E);
+      color: var(--navy-deep);
+      font-weight: 600;
+    }
+
+    .sidebar-link svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logout {
+      border-top: 1px solid rgba(251, 247, 240, 0.1);
+      padding-top: 16px;
+      margin-top: auto;
+    }
+
+    /* ---------- TOP NAV ---------- */
+    .dash-topnav {
+      background: rgba(251, 247, 240, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 24px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .topnav-notif {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .topnav-notif svg {
+      width: 24px;
+      height: 24px;
+      color: var(--navy);
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #E8364F;
+      color: white;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .topnav-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .topnav-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--line);
+    }
+
+    .topnav-userinfo {
+      text-align: right;
+    }
+
+    .topnav-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    .topnav-role {
+      font-size: 0.8rem;
+      color: rgba(27, 35, 51, 0.6);
+    }
+
+    .topnav-dropdown {
+      width: 16px;
+      height: 16px;
+      color: var(--navy);
+    }
+
+    /* ---------- MAIN CONTENT ---------- */
+    .dash-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .dash-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+    }
+
+    .dash-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .dash-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .dash-content::-webkit-scrollbar-thumb {
+      background: rgba(18, 31, 62, 0.2);
+      border-radius: 4px;
+    }
+
+    /* ============================================================
+       CONTENT SECTIONS
+       ============================================================ */
+
+    .welcome-section {
+      margin-bottom: 28px;
+    }
+
+    .welcome-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--navy);
+    }
+
+    .welcome-subtitle {
+      color: rgba(27, 35, 51, 0.6);
+      font-size: 0.95rem;
+    }
+
+    /* ---------- STAT CARDS ---------- */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--gold);
+      box-shadow: 0 4px 12px rgba(212, 165, 71, 0.1);
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .stat-icon.calendar { background: #FFE8D6; }
+    .stat-icon.check { background: #D6F1D9; }
+    .stat-icon.prayer { background: #FFE8D6; }
+    .stat-icon.people { background: #F0E8FF; }
+    .stat-icon.event { background: #D6E8FF; }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-weight: 600;
+      color: rgba(27, 35, 51, 0.6);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .stat-note {
+      font-size: 0.8rem;
+      color: rgba(27, 35, 51, 0.6);
+    }
+
+    .stat-note.success { color: var(--leaf); font-weight: 600; }
+
+    /* ---------- ATTENDANCE NUMBER CARD ---------- */
+    .attendance-card {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+      color: var(--cream);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .attendance-card::before {
+      content: '';
+      position: absolute;
+      right: -40px;
+      top: -40px;
+      width: 200px;
+      height: 200px;
+      background: rgba(251, 247, 240, 0.05);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .attendance-info {
+      position: relative;
+      z-index: 1;
+    }
+
+    .attendance-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0.8;
+      margin-bottom: 12px;
+    }
+
+    .attendance-number {
+      font-size: 3.2rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .attendance-help {
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    .attendance-button {
+      background: linear-gradient(90deg, var(--coral), #F59E5E);
+      color: var(--cream);
+      padding: 12px 24px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .attendance-button:hover {
+      transform: translateY(-2px);
+    }
+
+    /* ---------- QUICK ACTIONS ---------- */
+    .quick-actions {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      color: rgba(27, 35, 51, 0.6);
+      margin-bottom: 16px;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+    }
+
+    .action-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-card:hover {
+      border-color: var(--gold);
+      box-shadow: 0 4px 12px rgba(212, 165, 71, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .action-icon {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 12px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+    }
+
+    .action-icon.prayer { background: #FFE8D6; }
+    .action-icon.testimony { background: #F0E8FF; }
+    .action-icon.sermon { background: #D6E8FF; }
+    .action-icon.give { background: #FFD6D6; }
+    .action-icon.events { background: #D6F1D9; }
+
+    .action-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .action-desc {
+      font-size: 0.8rem;
+      color: rgba(27, 35, 51, 0.6);
+    }
+
+    /* ---------- CONTENT GRID ---------- */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .content-left {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .content-right {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ---------- ANNOUNCEMENTS SECTION ---------- */
+    .announcements-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .view-all-link {
+      color: var(--coral);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .view-all-link:hover { opacity: 0.8; }
+
+    .announcement-item {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .announcement-item:last-child { border-bottom: none; }
+
+    .announcement-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .announcement-title:hover { color: var(--coral); }
+
+    .announcement-desc {
+      font-size: 0.8rem;
+      color: rgba(27, 35, 51, 0.7);
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .announcement-date {
+      font-size: 0.75rem;
+      color: rgba(27, 35, 51, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ---------- BIBLE VERSE SECTION ---------- */
+    .bible-verse-box {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+      border-radius: 16px;
+      padding: 24px;
+      color: var(--cream);
+    }
+
+    .bible-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0.8;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bible-quote {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 18px;
+      font-style: italic;
+    }
+
+    .bible-reference {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* ---------- UPCOMING EVENT SECTION ---------- */
+    .upcoming-event-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .upcoming-event-inner {
+      display: flex;
+      gap: 16px;
+    }
+
+    .event-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--bg-light);
+    }
+
+    .event-info {
+      flex: 1;
+    }
+
+    .event-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .event-desc {
+      font-size: 0.8rem;
+      color: rgba(27, 35, 51, 0.7);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .event-datetime {
+      font-size: 0.75rem;
+      color: rgba(27, 35, 51, 0.6);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .event-location {
+      font-size: 0.75rem;
+      color: rgba(27, 35, 51, 0.6);
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+    }
+
+    /* ---------- FEEDBACK SECTION ---------- */
+    .feedback-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .feedback-desc {
+      font-size: 0.85rem;
+      color: rgba(27, 35, 51, 0.7);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .feedback-button {
+      background: linear-gradient(90deg, var(--coral), #F59E5E);
+      color: white;
+      padding: 11px 22px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s;
+    }
+
+    .feedback-button:hover { transform: translateY(-2px); }
+
+    /* ---------- MODALS ---------- */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 1.3rem;
+      color: var(--navy);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: rgba(27, 35, 51, 0.5);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .action-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .dash-shell { flex-direction: column; }
+      .dash-sidebar { width: 100%; height: auto; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .action-grid { grid-template-columns: repeat(2, 1fr); }
+      .attendance-card { flex-direction: column; text-align: center; }
+      .dash-content { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dash-shell">
+    <!-- SIDEBAR -->
+    <aside class="dash-sidebar">
+      <div class="sidebar-brand">
+        <img src="logo.png" alt="WSA" class="mark">
+        <div class="text">World Shakers<br>Assembly</div>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-label">Main</span>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link active" data-nav="dashboard">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            Dashboard
+          </button>
+          <button class="sidebar-link" data-nav="profile">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            My Profile
+          </button>
+          <button class="sidebar-link" data-nav="announcements">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M21 16v-5h-3V4c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v12c0 .55.45 1 1 1h13v5h3l3-3z"/></svg>
+            Announcements
+          </button>
+          <button class="sidebar-link" data-nav="events">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+            Upcoming Events
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-label">Spiritual</span>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link" data-nav="bible-verse">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>
+            Daily Bible Verse
+          </button>
+          <button class="sidebar-link" data-nav="expectations">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            Expectations
+          </button>
+          <button class="sidebar-link" data-nav="prayer-requests">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+            Prayer Requests
+          </button>
+          <button class="sidebar-link" data-nav="testimonies">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+            Testimonies
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-label">Media & Community</span>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link" data-nav="watch-sermon">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            Watch Sermon
+          </button>
+          <button class="sidebar-link" data-nav="give">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+            Give
+          </button>
+          <button class="sidebar-link" data-nav="feedback">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12h-8v2h8v-2zm0-3h-8v2h8V11zm0-3H4v2h14V8z"/></svg>
+            Feedback
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-label">Management</span>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link" data-nav="admin">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            Admin Panel
+          </button>
+          <button class="sidebar-link" data-nav="leaders">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Leaders Panel
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-section sidebar-logout">
+        <button class="sidebar-link" id="logoutBtn">
+          <svg fill="currentColor" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+            Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="dash-main">
+      <!-- TOP NAV -->
+      <nav class="dash-topnav">
+        <div class="topnav-notif" id="notifIcon">
+          <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V2c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 3.36 6 5.92 6 9v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <div class="notif-badge" id="notifBadge">3</div>
+        </div>
+
+        <div class="topnav-user">
+          <img src="https://via.placeholder.com/40" alt="User" class="topnav-avatar" id="userAvatar">
+          <div class="topnav-userinfo">
+            <div class="topnav-name" id="userName">Sylvanus</div>
+            <div class="topnav-role" id="userRole">Member</div>
+          </div>
+          <svg class="topnav-dropdown" fill="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+        </div>
+      </nav>
+
+      <!-- CONTENT -->
+      <div class="dash-content">
+        <!-- WELCOME SECTION -->
+        <div class="welcome-section">
+          <h1 class="welcome-title">Welcome back, <span id="memberName">User</span>! 👋</h1>
+          <p class="welcome-subtitle">Here's what's happening at World Shakers Assembly today.</p>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon calendar">📅</div>
+            <div class="stat-label">Member Since</div>
+            <div class="stat-value" id="memberSince">Jul 2026</div>
+            <div class="stat-note">Proud member</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon check">✓</div>
+            <div class="stat-label">Attendance Status</div>
+            <div class="stat-value">Good</div>
+            <div class="stat-note success">Keep it up!</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon prayer">🙏</div>
+            <div class="stat-label">Prayer Requests</div>
+            <div class="stat-value" id="prayerCount">2</div>
+            <div class="stat-note">Submitted</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon people">👥</div>
+            <div class="stat-label">Testimonies</div>
+            <div class="stat-value" id="testimonyCount">0</div>
+            <div class="stat-note">Submitted</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon event">📆</div>
+            <div class="stat-label">Next Event</div>
+            <div class="stat-value">Men's Week</div>
+            <div class="stat-note">Aug 30, 2026</div>
+          </div>
+        </div>
+
+        <!-- ATTENDANCE CARD -->
+        <div class="attendance-card">
+          <div class="attendance-info">
+            <div class="attendance-label">Your Attendance Number</div>
+            <div class="attendance-number" id="attendanceNum">001</div>
+            <div class="attendance-help">Use this number when you arrive at church.</div>
+          </div>
+          <button class="attendance-button" onclick="navigateTo('profile')">
+            View My Profile →
+          </button>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="quick-actions">
+          <div class="section-title">Quick Actions</div>
+          <div class="action-grid">
+            <div class="action-card" onclick="navigateTo('prayer-requests')">
+              <div class="action-icon prayer">🙏</div>
+              <div class="action-title">Prayer Request</div>
+              <div class="action-desc">Submit a request</div>
+            </div>
+            <div class="action-card" onclick="navigateTo('testimonies')">
+              <div class="action-icon testimony">👥</div>
+              <div class="action-title">Testimony</div>
+              <div class="action-desc">Share your story</div>
+            </div>
+            <div class="action-card" onclick="navigateTo('watch-sermon')">
+              <div class="action-icon sermon">▶</div>
+              <div class="action-title">Watch Sermon</div>
+              <div class="action-desc">Watch latest sermons</div>
+            </div>
+            <div class="action-card" onclick="navigateTo('give')">
+              <div class="action-icon give">❤</div>
+              <div class="action-title">Give</div>
+              <div class="action-desc">Support the ministry</div>
+            </div>
+            <div class="action-card" onclick="navigateTo('events')">
+              <div class="action-icon events">📅</div>
+              <div class="action-title">Events</div>
+              <div class="action-desc">View upcoming events</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TWO-COLUMN LAYOUT -->
+        <div class="content-grid">
+          <div class="content-left">
+            <!-- ANNOUNCEMENTS -->
+            <div class="announcements-box">
+              <div class="section-header">
+                <h3>📢 Announcements</h3>
+                <a class="view-all-link" onclick="navigateTo('announcements')">View All →</a>
+              </div>
+              <div id="announcementsList">
+                <div class="announcement-item">
+                  <div class="announcement-title">[Contribution Reminder] SADAKA KWA AJILI YA MAENDELEO YA KANISA</div>
+                  <div class="announcement-desc">SHALOM WAPENGUWA. NAWAKUMBUSHIA KUTOA SADAKA ZA MAENDELEO YA KANISA KAMA AJILI YA KUKAMLILISHA...</div>
+                  <div class="announcement-date">📅 May 17, 2026</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- LATEST SERMON -->
+            <div class="announcements-box">
+              <div class="section-header">
+                <h3>▶ Latest Sermon</h3>
+                <a class="view-all-link" onclick="navigateTo('watch-sermon')">View All →</a>
+              </div>
+              <div style="display: flex; gap: 16px;">
+                <img src="https://via.placeholder.com/120x80" alt="Sermon" style="width: 120px; height: 80px; border-radius: 8px; object-fit: cover;">
+                <div>
+                  <div class="announcement-title">NANNA MAOMBI YANAVYOMSAIDIA MTU KUINGIA KWENYE HATMA KUBWA</div>
+                  <div style="font-size: 0.8rem; color: rgba(27,35,51,0.7); margin-bottom: 8px;">Apostle David Mbembela</div>
+                  <div class="announcement-date">📅 May 16, 2026 • 45 min</div>
+                  <button class="feedback-button" style="margin-top: 12px;">Watch Now →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-right">
+            <!-- BIBLE VERSE -->
+            <div class="bible-verse-box">
+              <div class="bible-label">📖 TODAY'S BIBLE VERSE</div>
+              <div class="bible-quote">"For by grace are ye saved through faith; and that not of yourselves: it is the gift of God."</div>
+              <div class="bible-reference">Ephesians 2:8 (KJV)</div>
+            </div>
+
+            <!-- UPCOMING EVENT -->
+            <div class="upcoming-event-box">
+              <div class="section-header">
+                <h3>📅 Upcoming Event</h3>
+                <a class="view-all-link" onclick="navigateTo('events')">View All →</a>
+              </div>
+              <div class="upcoming-event-inner">
+                <img src="https://via.placeholder.com/100" alt="Event" class="event-image">
+                <div class="event-info">
+                  <div class="event-name">Men's Week</div>
+                  <div class="event-desc">A special time for men to grow, connect and be empowered.</div>
+                  <div class="event-datetime">📅 Aug 30, 2026 • 3:00 AM</div>
+                  <div class="event-location">📍 World Shakers Assembly, Changombe Extension</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FEEDBACK -->
+            <div class="feedback-box">
+              <div class="section-header">
+                <h3>💬 Feedback / Suggestion</h3>
+              </div>
+              <div class="feedback-desc">Have a suggestion, feedback or a prayer note for the church?</div>
+              <button class="feedback-button" onclick="navigateTo('feedback')">Write Feedback →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS FOR PRAYER REQUESTS, TESTIMONIES, etc -->
+  <div class="modal" id="prayerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Prayer Requests</h2>
+        <button class="modal-close" onclick="closePrayerModal()">×</button>
+      </div>
+      <div class="modal-body" id="prayerModalBody">
+        <!-- Loaded from API -->
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="testimonyModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Testimonies</h2>
+        <button class="modal-close" onclick="closeTestimonyModal()">×</button>
+      </div>
+      <div class="modal-body" id="testimonyModalBody">
+        <!-- Loaded from API -->
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="wsa-auth.js"></script>
+  <script src="wsa-notifications.js"></script>
+
+  <script>
+    // Initialize Supabase
+    const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const ok = await WSA.init(supabaseClient);
+      if (!ok) return;
+
+      // Update UI with member data
+      document.getElementById('memberName').textContent = WSA.member.full_name || 'User';
+      document.getElementById('userName').textContent = WSA.member.full_name || 'User';
+      document.getElementById('userRole').textContent = WSA.role.role_label || 'Member';
+      document.getElementById('memberSince').textContent = formatDate(WSA.member.joined_at);
+      document.getElementById('attendanceNum').textContent = String(WSA.member.attendance_number || '001').padStart(3, '0');
+
+      // Initialize notifications
+      const notif = new WSANotifications(supabaseClient);
+      await notif.init();
+      notif.showBadge();
+      notif.subscribe();
+
+      // Load data
+      await loadAnnouncements();
+      await loadPrayerRequests();
+      await loadTestimonies();
+
+      // Sidebar navigation
+      document.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const nav = btn.dataset.nav;
+          document.querySelectorAll('[data-nav]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          navigateTo(nav);
+        });
+      });
+    });
+
+    async function loadAnnouncements() {
+      try {
+        const { data } = await supabaseClient
+          .from('announcements')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (data && data.length > 0) {
+          const listHTML = data.map(a => `
+            <div class="announcement-item">
+              <div class="announcement-title">${a.title}</div>
+              <div class="announcement-desc">${a.description?.substring(0, 100)}...</div>
+              <div class="announcement-date">📅 ${new Date(a.created_at).toLocaleDateString()}</div>
+            </div>
+          `).join('');
+          document.getElementById('announcementsList').innerHTML = listHTML;
+        }
+      } catch (err) {
+        console.error('Error loading announcements:', err);
+      }
+    }
+
+    async function loadPrayerRequests() {
+      try {
+        const { count } = await supabaseClient
+          .from('prayer_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('member_id', WSA.member.id);
+        document.getElementById('prayerCount').textContent = count || 0;
+      } catch (err) {
+        console.error('Error loading prayer requests:', err);
+      }
+    }
+
+    async function loadTestimonies() {
+      try {
+        const { count } = await supabaseClient
+          .from('testimonies')
+          .select('*', { count: 'exact', head: true })
+          .eq('member_id', WSA.member.id);
+        document.getElementById('testimonyCount').textContent = count || 0;
+      } catch (err) {
+        console.error('Error loading testimonies:', err);
+      }
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'Jan 2026';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
+
+    function navigateTo(page) {
+      const pages = {
+        'dashboard': 'dashboard.html',
+        'profile': 'profile.html',
+        'announcements': 'announcements.html',
+        'events': 'events.html',
+        'bible-verse': 'bible-verse.html',
+        'expectations': 'expectations.html',
+        'prayer-requests': 'prayer-requests.html',
+        'testimonies': 'testimonies.html',
+        'watch-sermon': 'sermons.html',
+        'give': 'give.html',
+        'feedback': 'feedback.html',
+        'admin': 'admin.html',
+        'leaders': 'general-secretary.html'
+      };
+      if (pages[page]) {
+        window.location.href = pages[page];
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
+
+    function closePrayerModal() {
+      document.getElementById('prayerModal').classList.remove('active');
+    }
+
+    function closeTestimonyModal() {
+      document.getElementById('testimonyModal').classList.remove('active');
+    }
+
+    // Notification icon click
+    document.getElementById('notifIcon').addEventListener('click', () => {
+      alert('Notifications panel - coming soon');
+    });
+  </script>
+</body>
+</html>
