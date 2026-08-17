@@ -140,6 +140,7 @@ img{max-width:100%; display:block;}
       <a class="nav-tab" data-tab="pastors"><span class="ic">🧑‍🤝‍🧑</span> Pastors</a>
       <a class="nav-tab" data-tab="reports"><span class="ic">📄</span> Pastoral Reports</a>
       <a class="nav-tab" data-tab="prayer"><span class="ic">🙏</span> Prayer Requests</a>
+      <a class="nav-tab" data-tab="testimonies"><span class="ic">👥</span> Testimonies</a>
       <a class="nav-tab" data-tab="bible-study"><span class="ic">📖</span> Bible Study</a>
       <a class="nav-tab" data-tab="events"><span class="ic">🗓️</span> Events</a>
       <a class="nav-tab" data-tab="announcements"><span class="ic">📢</span> Announcements</a>
@@ -306,6 +307,26 @@ img{max-width:100%; display:block;}
               <table class="table">
                 <thead><tr><th>Date</th><th>Member</th><th>Title</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="prayer-tbody">
+                  <tr><td colspan="6" style="text-align:center; color:#999;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: TESTIMONIES -->
+        <div id="testimonies-tab" class="tab-content">
+          <div class="page-head">
+            <span class="mono" style="color:var(--coral);">Pastoral Ministry</span>
+            <h1>👥 Testimonies</h1>
+            <p>Testimonies shared by members. Mark each one as received once you've read it.</p>
+          </div>
+
+          <div class="card">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Date</th><th>Member</th><th>Title</th><th>Testimony</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="testimonies-tbody">
                   <tr><td colspan="6" style="text-align:center; color:#999;">Loading...</td></tr>
                 </tbody>
               </table>
@@ -574,6 +595,12 @@ img{max-width:100%; display:block;}
         document.getElementById(`${tabName}-tab`).classList.add('active');
         const sidebar = document.getElementById('dash-sidebar');
         if(sidebar) sidebar.classList.remove('open');
+        // Re-fetch on open so stale data (e.g. a pastor's Bible Study
+        // confirmation, or a new prayer request/testimony) is never shown
+        // stuck on an old state just because the tab was loaded earlier.
+        if(tabName === 'bible-study') loadBibleStudies();
+        if(tabName === 'prayer') loadPrayerRequests();
+        if(tabName === 'testimonies' && typeof loadTestimoniesReview === 'function') loadTestimoniesReview();
       });
     });
   }
@@ -796,8 +823,12 @@ img{max-width:100%; display:block;}
   function renderPrayerRequests(){
     const tbody = document.getElementById('prayer-tbody');
     tbody.innerHTML = allPrayerRequests.length ? allPrayerRequests.map(r => {
-      const badgeClass = r.status === 'answered' ? 'badge-success' : r.status === 'being_prayed_for' ? 'badge-info' : 'badge-warning';
-      const label = r.status === 'answered' ? 'Answered' : r.status === 'being_prayed_for' ? 'Being Prayed For' : 'Pending';
+      const isReceived = !!r.received_at;
+      let badgeClass, label;
+      if(!isReceived){ badgeClass = 'badge-warning'; label = 'Pending'; }
+      else if(r.status === 'answered'){ badgeClass = 'badge-success'; label = 'Answered'; }
+      else if(r.status === 'being_prayed_for'){ badgeClass = 'badge-info'; label = 'Being Prayed For'; }
+      else { badgeClass = 'badge-info'; label = '✓ Received'; }
       return `
         <tr>
           <td>${fmtDate(r.created_at)}</td>
@@ -806,12 +837,25 @@ img{max-width:100%; display:block;}
           <td>${escapeHTML(r.details || '—')}</td>
           <td><span class="badge ${badgeClass}">${label}</span></td>
           <td>
+            ${!isReceived ? `<button class="btn btn-primary" style="padding:6px 10px; font-size:0.72rem;" onclick="receivePrayerRequest('${r.id}')">Mark Received</button>` : `
             ${r.status !== 'being_prayed_for' ? `<button class="btn" style="padding:6px 10px; font-size:0.72rem;" onclick="setPrayerStatus('${r.id}','being_prayed_for')">Praying</button>` : ''}
             ${r.status !== 'answered' ? `<button class="btn btn-primary" style="padding:6px 10px; font-size:0.72rem;" onclick="setPrayerStatus('${r.id}','answered')">Mark Answered</button>` : ''}
+            `}
           </td>
         </tr>
       `;
     }).join('') : '<tr><td colspan="6" style="text-align:center; color:#999;">No prayer requests yet.</td></tr>';
+  }
+
+  async function receivePrayerRequest(id){
+    try {
+      const { error } = await supabaseClient.from('prayer_requests').update({
+        received_by: currentUserId, received_by_name: myFullName, received_at: new Date().toISOString(), status: 'being_prayed_for'
+      }).eq('id', id);
+      if(error) throw error;
+      await logAudit('prayer_request_received', { id });
+      await loadPrayerRequests();
+    } catch(err){ alert('Error: ' + err.message); }
   }
 
   async function setPrayerStatus(id, status){
@@ -820,6 +864,50 @@ img{max-width:100%; display:block;}
       if(error) throw error;
       await logAudit('prayer_request_status_updated', { id, status });
       await loadPrayerRequests();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  // ---------- TESTIMONIES ----------
+  let allTestimonies = [];
+
+  async function loadTestimoniesReview(){
+    const { data, error } = await supabaseClient
+      .from('testimonies')
+      .select('*')
+      .order('created_at', { ascending:false });
+    if(error){ console.error('Error loading testimonies:', error); return; }
+    allTestimonies = data || [];
+    renderTestimoniesReview();
+  }
+
+  function renderTestimoniesReview(){
+    const tbody = document.getElementById('testimonies-tbody');
+    if(!tbody) return;
+    tbody.innerHTML = allTestimonies.length ? allTestimonies.map(t => {
+      const isReceived = !!t.received_at;
+      const badgeClass = isReceived ? 'badge-success' : 'badge-warning';
+      const label = isReceived ? '✓ Received' : 'Pending';
+      return `
+        <tr>
+          <td>${fmtDate(t.created_at)}</td>
+          <td>${escapeHTML(memberName(t.member_id))}</td>
+          <td>${escapeHTML(t.title)}</td>
+          <td>${escapeHTML((t.testimony_text || '').slice(0, 140))}${(t.testimony_text || '').length > 140 ? '…' : ''}</td>
+          <td><span class="badge ${badgeClass}">${label}</span></td>
+          <td>${!isReceived ? `<button class="btn btn-primary" style="padding:6px 10px; font-size:0.72rem;" onclick="receiveTestimony('${t.id}')">Mark Received</button>` : ''}</td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="6" style="text-align:center; color:#999;">No testimonies yet.</td></tr>';
+  }
+
+  async function receiveTestimony(id){
+    try {
+      const { error } = await supabaseClient.from('testimonies').update({
+        status: 'received', received_by: currentUserId, received_by_name: myFullName, received_at: new Date().toISOString()
+      }).eq('id', id);
+      if(error) throw error;
+      await logAudit('testimony_received', { id });
+      await loadTestimoniesReview();
     } catch(err){ alert('Error: ' + err.message); }
   }
 
@@ -1246,6 +1334,7 @@ img{max-width:100%; display:block;}
     await loadAssignments();
     await loadReports();
     await loadPrayerRequests();
+    await loadTestimoniesReview();
     await loadBibleStudies();
     await loadMyRequests();
     await loadTeamRequests();

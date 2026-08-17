@@ -231,6 +231,7 @@ form{display:flex; flex-direction:column; gap:16px;}
   text-transform:uppercase; letter-spacing:0.03em; padding:5px 12px; border-radius:999px;
 }
 .pr-status.pending{background:rgba(240,169,61,0.15); color:#B5790E;}
+.pr-status.received{background:rgba(18,33,62,0.1); color:var(--navy);}
 .pr-status.being_prayed_for{background:rgba(76,122,78,0.12); color:var(--leaf);}
 .pr-status.answered{background:rgba(18,33,62,0.1); color:var(--navy);}
 .pr-delete-btn{
@@ -416,6 +417,7 @@ function escapeHTML(str){
 
 const STATUS_LABELS = {
   pending: 'Pending',
+  received: '✓ Received',
   being_prayed_for: 'Being Prayed For',
   answered: 'Answered'
 };
@@ -428,7 +430,10 @@ function renderPrayerList(requests){
   }
   list.innerHTML = requests.map(r => {
     const date = new Date(r.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-    const statusClass = r.status || 'pending';
+    // Until a leader marks it received, members only ever see "Pending" —
+    // the internal pastoral-care status (being_prayed_for/answered) only
+    // becomes visible once the request has actually been received.
+    const statusClass = !r.received_at ? 'pending' : (r.status || 'received');
     const statusLabel = STATUS_LABELS[statusClass] || 'Pending';
     return `
       <div class="pr-card" data-id="${r.id}">
@@ -477,7 +482,35 @@ async function loadPrayerRequests(userId){
   renderPrayerList(data || []);
 }
 
-function initPrayerForm(userId){
+// Notifies Senior Pastor, Admin, and General Overseer (Super Admin) whenever
+// a member submits a new prayer request or testimony, so nothing sits unseen.
+async function notifyLeadershipOfSubmission(kind, submitterName, title){
+  try{
+    const [{ data: byRole }, { data: viaRoles }] = await Promise.all([
+      supabaseClient.from('members').select('id').or('role.eq.admin,leadership_role.eq.senior_pastor,leadership_role.eq.general_overseer'),
+      supabaseClient.from('member_leadership_roles').select('member_id').in('leadership_role', ['senior_pastor','general_overseer']).eq('is_active', true)
+    ]);
+    const ids = new Set([
+      ...((byRole || []).map(m => m.id)),
+      ...((viaRoles || []).map(r => r.member_id))
+    ]);
+    if(!ids.size) return;
+    const isPrayer = kind === 'prayer';
+    const notifs = Array.from(ids).map(pid => ({
+      recipient_id: pid,
+      notification_type: isPrayer ? 'new_prayer_request' : 'new_testimony',
+      title: isPrayer ? 'New Prayer Request 🙏' : 'New Testimony Shared 👥',
+      message: `${submitterName} ${isPrayer ? 'submitted a prayer request' : 'shared a testimony'}: "${title}"`,
+      action_url: isPrayer ? 'senior-pastor.html' : 'senior-pastor.html'
+    }));
+    const { error } = await supabaseClient.from('notifications').insert(notifs);
+    if(error) console.error('Error notifying leadership:', error);
+  }catch(err){
+    console.error('Error notifying leadership:', err);
+  }
+}
+
+function initPrayerForm(userId, submitterName){
   const form = document.getElementById('pr-form');
   const statusEl = document.getElementById('pr-form-status');
   const submitBtn = document.getElementById('pr-submit-btn');
@@ -510,6 +543,7 @@ function initPrayerForm(userId){
       setFormStatus(statusEl, 'Your prayer request has been submitted.', 'success');
       form.reset();
       await loadPrayerRequests(userId);
+      notifyLeadershipOfSubmission('prayer', submitterName || 'A member', title);
 
     }catch(err){
       console.error('Submit error:', err);
@@ -556,7 +590,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   revealAdminLinkIfAdmin(member);
-  initPrayerForm(user.id);
+  initPrayerForm(user.id, member.full_name);
   await loadPrayerRequests(user.id);
 
   if(loadingEl) loadingEl.style.display = 'none';

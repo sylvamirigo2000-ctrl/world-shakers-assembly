@@ -149,6 +149,7 @@ img{max-width:100%; display:block;}
       <a class="nav-tab active" data-tab="overview" style="margin-top:12px;"><span class="ic">📊</span> Dashboard</a>
       <a class="nav-tab" data-tab="contact"><span class="ic">💬</span> Contact Messages</a>
       <a class="nav-tab" data-tab="feedback"><span class="ic">⭐</span> Member Feedback</a>
+      <a class="nav-tab" data-tab="prayer-testimony-oversight"><span class="ic">🙏</span> Prayer &amp; Testimonies</a>
       <a class="nav-tab" data-tab="church-ops"><span class="ic">✓</span> Church Operation</a>
       <a class="nav-tab" data-tab="members"><span class="ic">👥</span> Members Info</a>
       <a class="nav-tab" data-tab="leadership"><span class="ic">👑</span> Leadership Roles</a>
@@ -305,6 +306,47 @@ img{max-width:100%; display:block;}
           </div>
         </div>
         <div class="msg-list" id="feedback-list"></div>
+      </div>
+
+      <!-- TAB: PRAYER & TESTIMONY OVERSIGHT -->
+      <div id="prayer-testimony-oversight-tab" class="tab-content">
+        <div class="page-head">
+          <span class="mono" style="color:var(--coral);">Admin Panel</span>
+          <h1>🙏 Prayer Requests &amp; Testimonies</h1>
+          <p>Every prayer request and testimony submitted by members, for Admin / Super Admin oversight. Mark each one received once you've seen it.</p>
+        </div>
+        <div class="card" style="margin-bottom:20px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:16px;">
+            <div style="padding:16px; background:rgba(240,169,61,0.08); border-radius:10px;">
+              <div style="font-size:1.8rem; font-weight:800; color:var(--gold);" id="pto-pending-count">0</div>
+              <div style="font-size:0.85rem; color:#666;">Awaiting Receipt</div>
+            </div>
+            <div style="padding:16px; background:rgba(76,122,78,0.08); border-radius:10px;">
+              <div style="font-size:1.8rem; font-weight:800; color:var(--leaf);" id="pto-received-count">0</div>
+              <div style="font-size:0.85rem; color:#666;">Received</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="margin-bottom:12px;">Prayer Requests</h3>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>Date</th><th>Member</th><th>Title</th><th>Details</th><th>Status</th><th>Received By</th><th>Actions</th></tr></thead>
+              <tbody id="pto-prayer-tbody"><tr><td colspan="7" style="text-align:center; color:#999;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:12px;">Testimonies</h3>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>Date</th><th>Member</th><th>Title</th><th>Testimony</th><th>Status</th><th>Received By</th><th>Actions</th></tr></thead>
+              <tbody id="pto-testimony-tbody"><tr><td colspan="7" style="text-align:center; color:#999;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- TAB: CHURCH OPERATION (CHECK-IN) -->
@@ -892,6 +934,7 @@ img{max-width:100%; display:block;}
 
   // Current logged-in user's permission level (set once during init)
   let CURRENT_USER_ID = null;
+  let CURRENT_USER_NAME = null;
   let IS_SYSTEM_ADMIN = false;
   let IS_SUPER_ADMIN = false;
 
@@ -1156,6 +1199,9 @@ img{max-width:100%; display:block;}
     if (tabName === 'overview') {
       loadOverviewDashboard();
     }
+    if (tabName === 'prayer-testimony-oversight') {
+      loadPrayerTestimonyOversight();
+    }
 
     // Close sidebar on mobile
     const sidebar = document.getElementById('dash-sidebar');
@@ -1244,6 +1290,95 @@ img{max-width:100%; display:block;}
         </div>
       `;
     }).join('');
+  }
+
+  // ---------- PRAYER REQUESTS & TESTIMONIES OVERSIGHT (Admin / Super Admin) ----------
+  let allPrayerRequestsAdmin = [];
+  let allTestimoniesAdmin = [];
+
+  function ptoMemberName(id){
+    const m = allMembers.find(mem => mem.id === id);
+    return m ? m.full_name : 'Unknown member';
+  }
+
+  function ptoFmtDate(d){
+    return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  }
+
+  async function loadPrayerTestimonyOversight(){
+    const [{ data: prayers, error: prayerErr }, { data: testimonies, error: tstErr }] = await Promise.all([
+      supabaseClient.from('prayer_requests').select('*').order('created_at', { ascending:false }),
+      supabaseClient.from('testimonies').select('*').order('created_at', { ascending:false })
+    ]);
+    if(prayerErr) console.error('Error loading prayer requests:', prayerErr);
+    if(tstErr) console.error('Error loading testimonies:', tstErr);
+    allPrayerRequestsAdmin = prayers || [];
+    allTestimoniesAdmin = testimonies || [];
+    renderPrayerTestimonyOversight();
+  }
+
+  function renderPrayerTestimonyOversight(){
+    const prayerBody = document.getElementById('pto-prayer-tbody');
+    const tstBody = document.getElementById('pto-testimony-tbody');
+    const pendingCount = allPrayerRequestsAdmin.filter(r => !r.received_at).length + allTestimoniesAdmin.filter(t => !t.received_at).length;
+    const receivedCount = allPrayerRequestsAdmin.filter(r => !!r.received_at).length + allTestimoniesAdmin.filter(t => !!t.received_at).length;
+    document.getElementById('pto-pending-count').textContent = pendingCount;
+    document.getElementById('pto-received-count').textContent = receivedCount;
+
+    prayerBody.innerHTML = allPrayerRequestsAdmin.length ? allPrayerRequestsAdmin.map(r => {
+      const isReceived = !!r.received_at;
+      const badgeClass = !isReceived ? 'background:rgba(240,169,61,0.15); color:#B5790E;' : 'background:rgba(76,122,78,0.12); color:var(--leaf);';
+      const label = !isReceived ? 'Pending' : (r.status === 'answered' ? 'Answered' : r.status === 'being_prayed_for' ? 'Being Prayed For' : '✓ Received');
+      return `
+        <tr>
+          <td>${ptoFmtDate(r.created_at)}</td>
+          <td>${escapeHTML(ptoMemberName(r.member_id))}</td>
+          <td>${escapeHTML(r.title)}</td>
+          <td>${escapeHTML(r.details || '—')}</td>
+          <td><span class="msg-tag" style="${badgeClass}">${label}</span></td>
+          <td>${isReceived ? escapeHTML(r.received_by_name || '—') : '—'}</td>
+          <td>${!isReceived ? `<button class="btn btn-primary" style="padding:6px 10px; font-size:0.72rem;" onclick="receivePrayerRequestAdmin('${r.id}')">Mark Received</button>` : ''}</td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="7" style="text-align:center; color:#999;">No prayer requests yet.</td></tr>';
+
+    tstBody.innerHTML = allTestimoniesAdmin.length ? allTestimoniesAdmin.map(t => {
+      const isReceived = !!t.received_at;
+      const badgeClass = !isReceived ? 'background:rgba(240,169,61,0.15); color:#B5790E;' : 'background:rgba(76,122,78,0.12); color:var(--leaf);';
+      const label = !isReceived ? 'Pending' : '✓ Received';
+      const text = (t.testimony_text || '').slice(0, 140) + ((t.testimony_text || '').length > 140 ? '…' : '');
+      return `
+        <tr>
+          <td>${ptoFmtDate(t.created_at)}</td>
+          <td>${escapeHTML(ptoMemberName(t.member_id))}</td>
+          <td>${escapeHTML(t.title)}</td>
+          <td>${escapeHTML(text)}</td>
+          <td><span class="msg-tag" style="${badgeClass}">${label}</span></td>
+          <td>${isReceived ? escapeHTML(t.received_by_name || '—') : '—'}</td>
+          <td>${!isReceived ? `<button class="btn btn-primary" style="padding:6px 10px; font-size:0.72rem;" onclick="receiveTestimonyAdmin('${t.id}')">Mark Received</button>` : ''}</td>
+        </tr>
+      `;
+    }).join('') : '<tr><td colspan="7" style="text-align:center; color:#999;">No testimonies yet.</td></tr>';
+  }
+
+  async function receivePrayerRequestAdmin(id){
+    try {
+      const { error } = await supabaseClient.from('prayer_requests').update({
+        received_by: CURRENT_USER_ID, received_by_name: CURRENT_USER_NAME, received_at: new Date().toISOString(), status: 'being_prayed_for'
+      }).eq('id', id);
+      if(error) throw error;
+      await loadPrayerTestimonyOversight();
+    } catch(err){ alert('Error: ' + err.message); }
+  }
+
+  async function receiveTestimonyAdmin(id){
+    try {
+      const { error } = await supabaseClient.from('testimonies').update({
+        status: 'received', received_by: CURRENT_USER_ID, received_by_name: CURRENT_USER_NAME, received_at: new Date().toISOString()
+      }).eq('id', id);
+      if(error) throw error;
+      await loadPrayerTestimonyOversight();
+    } catch(err){ alert('Error: ' + err.message); }
   }
 
   async function loadFeedback(){
@@ -2664,7 +2799,7 @@ img{max-width:100%; display:block;}
       console.log('✓ Fetching profile...');
       const { data: profile, error: profileError } = await supabaseClient
         .from('members')
-        .select('role, leadership_role')
+        .select('role, leadership_role, full_name')
         .eq('id', session.user.id)
         .single();
 
@@ -2694,6 +2829,7 @@ img{max-width:100%; display:block;}
 
       // Expose current user's permission level for the Members tab (delete/edit gating)
       CURRENT_USER_ID = session.user.id;
+      CURRENT_USER_NAME = profile.full_name;
       IS_SYSTEM_ADMIN = !!isSystemAdmin;
       IS_SUPER_ADMIN = !!isGeneralOverseer;
 
