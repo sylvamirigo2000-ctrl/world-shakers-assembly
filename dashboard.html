@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member Dashboard — World Shakers Assembly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   style.css — World Shakers Assembly Member Portal
+   Reuses the exact design tokens, fonts, and components from
+   the main site (index.html). No new colors or fonts introduced.
+   ============================================================ */
+
+:root{
+  --navy:#12213E;
+  --navy-deep:#0B1730;
+  --gold:#F0A93D;
+  --coral:#E8613F;
+  --cream:#FBF7F0;
+  --leaf:#4C7A4E;
+  --ink:#1B2333;
+  --line: rgba(18,33,62,0.12);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Inter', sans-serif;
+  color:var(--ink);
+  background:var(--cream);
+  line-height:1.55;
+}
+h1,h2,h3,.display{
+  font-family:'Sora', sans-serif;
+  font-weight:800;
+  letter-spacing:-0.02em;
+}
+.mono{
+  font-family:'Space Mono', monospace;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  font-size:0.75rem;
+}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+.wrap{max-width:1120px; margin:0 auto; padding:0 24px;}
+
+/* NAV (matches index.html exactly) */
+nav{
+  position:sticky; top:0; z-index:50;
+  background:rgba(251,247,240,0.9);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+nav .wrap{display:flex; align-items:center; justify-content:space-between; height:72px;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Sora'; font-weight:800; font-size:1.05rem;}
+.brand .mark{width:40px; height:40px; border-radius:8px; object-fit:contain;}
+.navlinks{display:flex; gap:28px; align-items:center;}
+.navlinks a{font-size:0.92rem; font-weight:600; color:var(--navy); opacity:0.8; transition:opacity .2s;}
+.navlinks a:hover{opacity:1;}
+.navlinks .cta{background:var(--navy); color:var(--cream); padding:10px 18px; border-radius:999px; opacity:1;}
+.navtoggle{display:none; flex-direction:column; gap:4px; cursor:pointer; background:none; border:none;}
+.navtoggle span{width:22px; height:2px; background:var(--navy);}
+
+/* BUTTONS (matches index.html exactly) */
+.btn{
+  padding:14px 26px; border-radius:999px; font-weight:600; font-size:0.95rem;
+  display:inline-block; transition:transform .15s ease, opacity .15s ease;
+  border:none; cursor:pointer; font-family:'Inter';
+}
+.btn:hover{transform:translateY(-2px);}
+.btn-primary{background:linear-gradient(90deg,var(--gold),var(--coral)); color:var(--navy-deep);}
+.btn-outline{border:1.5px solid rgba(18,33,62,0.25); color:var(--navy); background:none;}
+.btn:disabled{opacity:0.6; cursor:not-allowed; transform:none;}
+.btn-block{width:100%; text-align:center;}
+
+/* FORM FIELDS (matches index.html contact form exactly) */
+form{display:flex; flex-direction:column; gap:16px;}
+.field label{display:block; font-size:0.82rem; font-weight:600; margin-bottom:6px; color:rgba(27,35,51,0.7);}
+.field input, .field textarea, .field select{
+  width:100%; padding:13px 16px; border-radius:10px; border:1px solid var(--line);
+  font-family:'Inter'; font-size:0.95rem; background:white; color:var(--ink);
+}
+.field input:focus, .field textarea:focus, .field select:focus{
+  outline:2px solid var(--gold); outline-offset:1px;
+}
+.field textarea{resize:vertical; min-height:110px;}
+.field-error{color:var(--coral); font-size:0.8rem; margin-top:6px; display:none;}
+.field.invalid input, .field.invalid select{border-color:var(--coral);}
+.field.invalid .field-error{display:block;}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.radio-row{display:flex; gap:22px; align-items:center;}
+.radio-row label{display:flex; align-items:center; gap:8px; font-size:0.92rem; font-weight:500; color:var(--ink); cursor:pointer;}
+.check-row{display:flex; align-items:flex-start; gap:10px; font-size:0.85rem; color:rgba(27,35,51,0.75);}
+.check-row input{width:auto; margin-top:3px;}
+.check-row a{color:var(--coral); text-decoration:underline;}
+
+/* ============================================================
+   AUTH PAGES (register.html / login.html)
+   ============================================================ */
+.auth-hero{
+  background:linear-gradient(180deg,var(--navy) 0%, var(--navy-deep) 100%);
+  color:var(--cream);
+  padding:64px 0 48px;
+  text-align:center;
+}
+.auth-hero .eyebrow{color:var(--gold); display:inline-flex; align-items:center; gap:8px; margin-bottom:14px;}
+.auth-hero .eyebrow::before{content:"◆"; font-size:0.6rem;}
+.auth-hero h1{font-size:clamp(1.8rem, 4vw, 2.6rem);}
+.auth-hero p{opacity:0.8; margin-top:10px; max-width:480px; margin-left:auto; margin-right:auto;}
+
+.auth-wrap{max-width:720px; margin:0 auto; padding:48px 24px 80px;}
+.auth-card{
+  background:white; border:1px solid var(--line); border-radius:20px;
+  padding:40px; box-shadow:0 20px 50px rgba(18,33,62,0.08);
+}
+.auth-card h2{font-size:1.3rem; margin-bottom:6px;}
+.auth-card .sub-note{color:rgba(27,35,51,0.6); font-size:0.9rem; margin-bottom:28px;}
+.form-section{margin-bottom:8px;}
+.form-section + .form-section{margin-top:8px; padding-top:24px; border-top:1px solid var(--line);}
+.form-section h3{font-size:0.95rem; font-family:'Space Mono'; text-transform:uppercase; letter-spacing:0.04em; color:var(--coral); margin-bottom:16px;}
+.auth-switch{text-align:center; margin-top:22px; font-size:0.9rem; color:rgba(27,35,51,0.7);}
+.auth-switch a{color:var(--coral); font-weight:600; text-decoration:underline;}
+.auth-toplink{display:inline-flex; align-items:center; gap:6px; color:var(--cream); opacity:0.8; font-size:0.88rem; margin-bottom:18px;}
+.auth-toplink:hover{opacity:1;}
+
+.form-status{
+  padding:13px 16px; border-radius:10px; font-size:0.88rem; margin-bottom:18px; display:none;
+}
+.form-status.error{display:block; background:rgba(232,97,63,0.1); color:var(--coral); border:1px solid rgba(232,97,63,0.25);}
+.form-status.success{display:block; background:rgba(76,122,78,0.1); color:var(--leaf); border:1px solid rgba(76,122,78,0.25);}
+
+.remember-row{display:flex; justify-content:space-between; align-items:center; font-size:0.88rem;}
+.remember-row label{display:flex; align-items:center; gap:8px; cursor:pointer; color:rgba(27,35,51,0.75);}
+.remember-row a{color:var(--coral); font-weight:600;}
+
+/* ============================================================
+   DASHBOARD (dashboard.html)
+   ============================================================ */
+/* ============================================================
+   DASHBOARD (dashboard.html) — v2
+   ============================================================ */
+.dash-shell{display:flex; min-height:100vh;}
+
+/* ---------- Sidebar ---------- */
+.dash-sidebar{
+  width:264px; flex-shrink:0; background-color:#0B1730; color:#FBF7F0;
+  padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+.dash-sidebar .brand{
+  color:#FBF7F0; font-size:0.92rem; margin-bottom:4px; padding:0 8px;
+  display:flex; align-items:center; gap:10px;
+}
+.dash-sidebar .brand .mark{width:36px; height:36px;}
+.dash-sidebar .brand .brand-text{line-height:1.2;}
+.dash-sidebar .brand .brand-text small{
+  display:block; font-family:'Space Mono', monospace; font-size:0.58rem; font-weight:400;
+  letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); opacity:0.85; margin-top:1px;
+}
+.dash-sidebar-scroll{flex:1; display:flex; flex-direction:column; margin-top:20px;}
+.dash-nav-group{margin-bottom:4px;}
+.dash-nav-group-label{
+  font-family:'Space Mono', monospace; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:rgba(251,247,240,0.35); padding:14px 12px 8px;
+}
+.dash-nav{display:flex; flex-direction:column; gap:1px;}
+.dash-nav a{
+  display:flex; align-items:center; gap:11px; padding:11px 14px; border-radius:10px;
+  font-size:0.88rem; font-weight:600; color:rgba(251,247,240,0.75);
+  transition:background .15s ease, color .15s ease; position:relative;
+}
+.dash-nav a .ic{width:18px; text-align:center; flex-shrink:0; font-size:0.95rem; opacity:0.9;}
+.dash-nav a:hover{background:rgba(251,247,240,0.06); color:#FFFFFF;}
+.dash-nav a.active{
+  background:linear-gradient(90deg, var(--gold), var(--coral)); color:#fff; font-weight:700;
+  box-shadow:0 4px 12px rgba(232,97,63,0.25);
+}
+.dash-nav a.active .ic{opacity:1;}
+.dash-nav a.soon{opacity:0.4; cursor:default;}
+.dash-nav a.soon:hover{background:none; color:rgba(251,247,240,0.68);}
+.leaders-group summary{
+  display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px;
+  font-size:0.87rem; font-weight:500; color:rgba(251,247,240,0.68); cursor:pointer;
+  list-style:none; user-select:none;
+}
+.leaders-group summary::-webkit-details-marker{display:none;}
+.leaders-group summary:hover{background:rgba(251,247,240,0.06); color:#FFFFFF;}
+.leaders-group summary::after{content:'▸'; margin-left:auto; font-size:0.7rem; transition:transform .15s ease; opacity:0.6;}
+.leaders-group[open] summary::after{transform:rotate(90deg);}
+.leaders-group-links{display:flex; flex-direction:column; gap:1px; padding-left:8px; margin-top:2px;}
+.dash-logout{margin-top:16px; padding-top:16px; border-top:1px solid rgba(251,247,240,0.08);}
+
+/* ---------- Topbar ---------- */
+.dash-main{flex:1; min-width:0;}
+.dash-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+  padding:20px 36px; border-bottom:1px solid var(--line); background:rgba(251,247,240,0.92);
+  backdrop-filter:blur(8px); position:sticky; top:0; z-index:10;
+}
+.dash-menu-toggle{display:none; background:none; border:none; cursor:pointer; flex-direction:column; gap:4px;}
+.dash-menu-toggle span{width:22px; height:2px; background:var(--navy);}
+.dash-welcome{flex:1; min-width:0; overflow:hidden;}
+.dash-welcome h1{font-size:1.5rem; margin-bottom:4px; color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.dash-welcome p{color:rgba(27,35,51,0.55); font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.dash-topbar-right{display:flex; align-items:center; gap:16px; flex-shrink:0;}
+.dash-notif-btn{
+  position:relative; width:40px; height:40px; border-radius:10px; border:1px solid var(--line); background:#fff;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.05rem; color:var(--navy);
+}
+.dash-notif-btn .notif-badge{
+  position:absolute; top:-6px; right:-6px; background:var(--coral); color:#fff; font-size:0.65rem; font-weight:700;
+  min-width:18px; height:18px; border-radius:999px; display:none; align-items:center; justify-content:center;
+  padding:0 4px; border:2px solid var(--cream);
+}
+.dash-notif-panel{
+  position:absolute; top:calc(100% + 10px); right:0; width:360px; max-height:420px; overflow-y:auto;
+  background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 20px 50px rgba(18,33,62,0.16);
+  z-index:30; display:none;
+}
+.dash-notif-panel.open{display:block;}
+.dash-notif-panel-head{
+  display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line);
+}
+.dash-notif-panel-head h4{font-size:0.9rem;}
+.dash-notif-panel-head button{background:none; border:none; color:var(--coral); font-size:0.78rem; font-weight:600; cursor:pointer;}
+.dash-notif-item{padding:12px 16px; border-bottom:1px solid var(--line); cursor:pointer;}
+.dash-notif-item:last-child{border-bottom:none;}
+.dash-notif-item:hover{background:rgba(240,169,61,0.05);}
+.dash-notif-item.unread{background:rgba(240,169,61,0.06);}
+.dash-notif-item h5{font-size:0.84rem; margin-bottom:3px; color:var(--navy);}
+.dash-notif-item p{font-size:0.78rem; color:rgba(27,35,51,0.6); line-height:1.4;}
+.dash-notif-item time{font-size:0.7rem; color:rgba(27,35,51,0.4); display:block; margin-top:4px;}
+.dash-notif-empty{padding:30px 16px; text-align:center; font-size:0.85rem; color:rgba(27,35,51,0.5);}
+.dash-account{display:flex; align-items:center; gap:10px; cursor:pointer;}
+.dash-avatar{
+  width:44px; height:44px; border-radius:50%; object-fit:cover; background:var(--gold); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; color:var(--navy-deep); font-weight:700; font-size:0.9rem;
+  font-family:'Sora';
+}
+.dash-account-info{line-height:1.3; display:none;}
+.dash-account-info .name{font-size:0.85rem; font-weight:800; color:var(--navy); font-family:'Sora'; letter-spacing:0.02em;}
+.dash-account-info .role{font-size:0.75rem; color:rgba(27,35,51,0.5);}
+.dash-account .chevron{font-size:0.7rem; color:rgba(27,35,51,0.35); margin-left:2px;}
+
+.dash-content{padding:24px 36px 40px;}
+
+/* ---------- Stat strip ---------- */
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:18px;}
+.stat-card{
+  background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 18px;
+  display:flex; align-items:flex-start; gap:14px;
+}
+.stat-card .ic{
+  width:44px; height:44px; border-radius:10px; background:rgba(18,33,62,0.05); color:var(--navy);
+  display:flex; align-items:center; justify-content:center; font-size:1.15rem; flex-shrink:0;
+}
+.stat-card .stat-body{min-width:0;}
+.stat-card .eyebrow-label{
+  font-family:'Space Mono', monospace; font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase;
+  color:rgba(27,35,51,0.4); margin-bottom:5px;
+}
+.stat-card .num{font-family:'Sora'; font-weight:800; font-size:1.2rem; color:var(--navy); line-height:1.2;}
+.stat-card .num.status-good{color:var(--leaf);}
+.stat-card .label{font-size:0.78rem; color:rgba(27,35,51,0.5); margin-top:3px;}
+.stat-card .sub-status{font-size:0.78rem; color:var(--leaf); font-weight:600; margin-top:3px;}
+.stat-card-link{text-decoration:none; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;}
+.stat-card-link:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(18,33,62,0.08);}
+
+/* ---------- Attendance hero ---------- */
+.attendance-hero{
+  background:linear-gradient(120deg, var(--navy) 0%, var(--navy-deep) 100%); color:#fff;
+  border-radius:16px; padding:20px 28px; margin-bottom:20px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
+}
+.attendance-hero .eyebrow{
+  font-family:'Space Mono', monospace; font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:10px; display:block;
+}
+.attendance-hero .num{font-family:'Sora'; font-size:2rem; font-weight:800; letter-spacing:0.06em; line-height:1;}
+.attendance-hero p.note{opacity:0.65; font-size:0.8rem; margin-top:6px;}
+.attendance-hero .btn{white-space:nowrap;}
+
+/* ---------- Quick actions ---------- */
+.section-label{
+  font-family:'Space Mono', monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:rgba(27,35,51,0.4); margin-bottom:12px;
+}
+.qa-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px;}
+.qa-card{
+  background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+  display:flex; align-items:center; gap:11px; transition:transform .15s ease, box-shadow .15s ease;
+}
+.qa-card:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(18,33,62,0.08);}
+.qa-card .ic{
+  width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+  font-size:1rem; flex-shrink:0;
+}
+.qa-card .qa-title{font-size:0.9rem; font-weight:700; color:var(--navy); font-family:'Sora';}
+.qa-card .qa-sub{font-size:0.76rem; color:rgba(27,35,51,0.5); margin-top:2px;}
+
+/* ---------- Two-column content ---------- */
+.dash-two-col{display:grid; grid-template-columns:1.35fr 1fr; gap:18px; align-items:start;}
+.dash-col{display:flex; flex-direction:column; gap:16px;}
+.panel{
+  background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px 20px;
+}
+.panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+.panel-head h2{font-size:1.05rem; display:flex; align-items:center; gap:9px; color:var(--navy);}
+.panel-head .view-all{font-size:0.8rem; font-weight:700; color:var(--coral);}
+.panel-empty{color:rgba(27,35,51,0.45); font-size:0.88rem;}
+
+.ann-item{padding:10px 0; border-bottom:1px solid var(--line);}
+.ann-item:first-child{padding-top:0;}
+.ann-item:last-child{border-bottom:none; padding-bottom:0;}
+.ann-item h4{font-family:'Sora'; font-size:0.92rem; margin-bottom:4px; color:var(--navy); font-weight:700;}
+.ann-item p{font-size:0.84rem; color:rgba(27,35,51,0.6); line-height:1.5;}
+.ann-item time{font-size:0.72rem; color:rgba(27,35,51,0.4); display:block; margin-top:6px;}
+
+/* Sermon strip — compact single-line layout */
+.sermon-strip{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.sermon-strip .thumb{
+  position:relative; width:76px; height:76px; border-radius:10px; overflow:hidden; background:var(--navy);
+  flex-shrink:0;
+}
+.sermon-strip .thumb img{width:100%; height:100%; object-fit:cover;}
+.sermon-strip .thumb .play-icon{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.92);
+  display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:var(--coral);
+}
+.sermon-strip .info{flex:1; min-width:140px;}
+.sermon-title{font-family:'Sora'; font-weight:700; font-size:0.9rem; color:var(--navy); line-height:1.3;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.sermon-meta{font-size:0.76rem; color:rgba(27,35,51,0.5); margin-top:3px;}
+.sermon-strip .btn{flex-shrink:0; padding:9px 16px; font-size:0.82rem;}
+
+/* Bible verse panel (navy) */
+.panel-navy{
+  background:linear-gradient(160deg,var(--navy) 0%, var(--navy-deep) 100%); color:var(--cream);
+  border-radius:16px; padding:28px;
+}
+.panel-navy .panel-head h2{color:var(--cream);}
+.verse-text{font-family:'Sora'; font-size:1.08rem; line-height:1.55; margin-bottom:12px; font-weight:600;}
+.verse-ref{font-size:0.8rem; color:var(--gold); font-weight:700;}
+
+/* Upcoming event panel */
+.event-card{display:flex; gap:14px; align-items:flex-start;}
+.event-date-badge{
+  width:56px; flex-shrink:0; border-radius:10px; background:rgba(232,97,63,0.08); color:var(--coral);
+  text-align:center; padding:9px 0; font-family:'Sora';
+}
+.event-date-badge .mon{display:block; font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;}
+.event-date-badge .day{display:block; font-size:1.3rem; font-weight:800; line-height:1.1;}
+.event-info h4{font-family:'Sora'; font-size:0.92rem; color:var(--navy); font-weight:700; margin-bottom:4px;}
+.event-info p{font-size:0.8rem; color:rgba(27,35,51,0.55); line-height:1.5;}
+.event-info .event-time{color:var(--coral); font-weight:600;}
+
+/* Feedback panel */
+.dash-feedback-form textarea{min-height:88px;}
+
+@media (max-width:1080px){
+  .dash-two-col{grid-template-columns:1fr;}
+}
+
+.loading-spin{
+  width:34px; height:34px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--coral);
+  animation:spin 0.8s linear infinite; margin:60px auto;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Toast notifications */
+.toast-stack{position:fixed; bottom:24px; right:24px; z-index:200; display:flex; flex-direction:column; gap:10px;}
+.toast{
+  background:var(--navy); color:var(--cream); padding:14px 20px; border-radius:12px;
+  font-size:0.88rem; box-shadow:0 12px 30px rgba(18,33,62,0.25);
+  animation:toastIn 0.25s ease-out;
+  max-width:320px;
+}
+.toast.error{background:var(--coral);}
+.toast.success{background:var(--leaf);}
+@keyframes toastIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+
+/* ---------- Modal ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(11,23,48,0.55); z-index:300;
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:#fff; border-radius:18px; max-width:480px; width:100%; max-height:85vh; overflow-y:auto;
+  padding:28px; position:relative;
+}
+.modal-close{
+  position:absolute; top:16px; right:16px; background:none; border:none; font-size:1.2rem; cursor:pointer;
+  color:rgba(27,35,51,0.4); width:32px; height:32px; border-radius:50%;
+}
+.modal-close:hover{background:rgba(18,33,62,0.06);}
+.modal-box h3{font-size:1.15rem; color:var(--navy); margin-bottom:4px;}
+.modal-box .modal-sub{font-size:0.85rem; color:rgba(27,35,51,0.55); margin-bottom:20px;}
+.modal-stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;}
+.modal-stat{background:rgba(18,33,62,0.03); border-radius:10px; padding:12px; text-align:center;}
+.modal-stat .num{font-family:'Sora'; font-weight:800; font-size:1.3rem; color:var(--navy);}
+.modal-stat .label{font-size:0.7rem; color:rgba(27,35,51,0.5); margin-top:2px;}
+.modal-perf{padding:14px 16px; border-radius:10px; margin-bottom:20px; font-size:0.88rem; font-weight:600; text-align:center;}
+.modal-perf.tier-good{background:rgba(76,122,78,0.1); color:var(--leaf);}
+.modal-perf.tier-fair{background:rgba(240,169,61,0.12); color:#a5720f;}
+.modal-perf.tier-low{background:rgba(232,97,63,0.1); color:var(--coral);}
+.modal-missed-list{max-height:180px; overflow-y:auto;}
+.modal-missed-item{display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:0.82rem;}
+.modal-missed-item:last-child{border-bottom:none;}
+.modal-missed-item .d{color:var(--navy); font-weight:600; flex-shrink:0;}
+.modal-missed-item .r{color:rgba(27,35,51,0.55); text-align:right;}
+#attendance-status-card{cursor:pointer;}
+#attendance-status-card:hover{box-shadow:0 8px 20px rgba(18,33,62,0.08);}
+
+@media (prefers-reduced-motion: reduce){
+  .toast, .stat-card, .btn, .qa-card{animation:none !important; transition:none !important;}
+}
+
+@media (max-width:820px){
+  .navlinks{position:fixed; top:72px; left:0; right:0; background:var(--cream); flex-direction:column;
+    align-items:flex-start; padding:20px 24px; border-bottom:1px solid var(--line); display:none; gap:18px;}
+  .navlinks.open{display:flex;}
+  .navtoggle{display:flex;}
+  .field-row{grid-template-columns:1fr;}
+  .auth-card{padding:26px;}
+
+  .dash-sidebar{
+    position:fixed; left:-280px; top:0; bottom:0; z-index:100; transition:left .2s ease; width:250px;
+  }
+  .dash-sidebar.open{left:0;}
+  .dash-menu-toggle{display:flex;}
+  .dash-content{padding:22px;}
+  .dash-topbar{padding:14px 16px; gap:10px;}
+  .dash-account-info{display:none !important;}
+  .attendance-hero{padding:24px;}
+  .dash-welcome h1{font-size:1.15rem; margin-bottom:2px;}
+  .dash-welcome p{font-size:0.78rem;}
+  .dash-topbar-right{gap:10px;}
+  .dash-notif-btn{width:36px; height:36px; font-size:0.95rem;}
+  .dash-avatar{width:38px; height:38px; font-size:0.8rem;}
+  .dash-notif-panel{position:fixed; top:66px; left:12px; right:12px; width:auto; max-height:min(420px, calc(100vh - 90px));}
+}
+
+@media (max-width:400px){
+  .dash-welcome h1{font-size:1rem;}
+  .dash-welcome p{display:none;}
+}
+
+@media (min-width:640px){
+  .dash-account-info{display:block;}
+}
+
+</style>
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <div class="brand">
+      <img src="logo.png" alt="World Shakers Assembly logo" class="mark" onerror="this.style.display='none'">
+      <div class="brand-text">World Shakers Assembly<small>The Home of Giants</small></div>
+    </div>
+    <div class="dash-sidebar-scroll">
+      <nav class="dash-nav">
+        <div class="dash-nav-group">
+          <div class="dash-nav-group-label">Main</div>
+          <a href="dashboard.html" class="active" data-nav-label="Dashboard"><span class="ic">🏠</span> Dashboard</a>
+          <a href="profile.html" data-nav-label="My Profile"><span class="ic">👤</span> My Profile</a>
+          <a href="announcements.html" data-nav-label="Announcements"><span class="ic">📣</span> Announcements</a>
+          <a href="events.html" data-nav-label="Upcoming Events"><span class="ic">📅</span> Upcoming Events</a>
+        </div>
+        <div class="dash-nav-group">
+          <div class="dash-nav-group-label">Spiritual</div>
+          <a href="bible-verse.html" data-nav-label="Daily Bible Verse"><span class="ic">📖</span> Daily Bible Verse</a>
+          <a href="expectations.html" data-nav-label="Expectations"><span class="ic">✍️</span> Expectations</a>
+          <a href="prayer-requests.html" data-nav-label="Prayer Requests"><span class="ic">🙏</span> Prayer Requests</a>
+          <a href="testimonies.html" data-nav-label="Testimonies"><span class="ic">🙌</span> Testimonies</a>
+        </div>
+        <div class="dash-nav-group">
+          <div class="dash-nav-group-label">Media &amp; Community</div>
+          <a href="sermons.html" data-nav-label="Watch Sermon"><span class="ic">▶️</span> Watch Sermon</a>
+          <a href="give.html" data-nav-label="Give"><span class="ic">💛</span> Give</a>
+          <a href="feedback.html" data-nav-label="Feedback"><span class="ic">💬</span> Feedback</a>
+        </div>
+        <div class="dash-nav-group" id="management-nav-group" style="display:none;">
+          <div class="dash-nav-group-label">Management</div>
+          <a href="admin.html" id="admin-nav-link" data-nav-label="Admin Panel" style="display:none;"><span class="ic">🛠️</span> Admin Panel</a>
+          <details class="leaders-group" id="leaders-group" style="display:none;">
+            <summary><span class="ic">👑</span> Leaders Panel</summary>
+            <div class="leaders-group-links">
+              <a href="treasurer.html" id="treasurer-nav-link" style="display:none;"><span class="ic">💰</span> Treasury</a>
+              <a href="general-secretary.html" id="secretary-nav-link" style="display:none;"><span class="ic">📋</span> Secretary Panel</a>
+              <a href="usher-chief.html" id="chief-usher-nav-link" style="display:none;"><span class="ic">🧭</span> Chief Usher Panel</a>
+              <a href="usher.html" id="usher-nav-link" style="display:none;"><span class="ic">🚪</span> Usher Panel</a>
+              <a href="media-leader.html" id="media-leader-nav-link" style="display:none;"><span class="ic">🎬</span> Media Leader Panel</a>
+              <a href="media-personnel.html" id="media-personnel-nav-link" style="display:none;"><span class="ic">🎥</span> Media Panel</a>
+              <a href="praise-leader.html" id="praise-leader-nav-link" style="display:none;"><span class="ic">🎵</span> Praise Leader Panel</a>
+              <a href="praise-member.html" id="praise-member-nav-link" style="display:none;"><span class="ic">🎤</span> Praise Team Panel</a>
+              <a href="chief-protocol.html" id="chief-protocol-nav-link" style="display:none;"><span class="ic">🧭</span> Chief Protocol Panel</a>
+              <a href="protocol-member.html" id="protocol-member-nav-link" style="display:none;"><span class="ic">🛡️</span> Protocol Panel</a>
+              <a href="senior-pastor.html" id="senior-pastor-nav-link" style="display:none;"><span class="ic">⛪</span> Senior Pastor Panel</a>
+              <a href="pastor.html" id="pastor-nav-link" style="display:none;"><span class="ic">🕊️</span> Pastor Panel</a>
+              <a href="mens-leader.html" id="mens-leader-nav-link" style="display:none;"><span class="ic">🧔</span> Men's Leader Panel</a>
+              <a href="womens-leader.html" id="womens-leader-nav-link" style="display:none;"><span class="ic">👩</span> Women's Leader Panel</a>
+              <a href="youth-leader.html" id="youth-leader-nav-link" style="display:none;"><span class="ic">🧑‍🎓</span> Youth Leader Panel</a>
+            </div>
+          </details>
+        </div>
+      </nav>
+    </div>
+    <div class="dash-logout">
+      <a href="#" id="logout-btn"><span class="ic">↩</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <button class="dash-menu-toggle" id="dash-menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+
+      <div class="dash-welcome">
+        <h1 id="welcome-name">Welcome back!</h1>
+        <p id="welcome-sub">Great to see you.</p>
+      </div>
+
+      <div class="dash-topbar-right">
+        <div style="position:relative;">
+          <button class="dash-notif-btn" id="dash-notif-btn" aria-label="Notifications">
+            🔔
+            <span class="notif-badge" id="notif-badge"></span>
+          </button>
+          <div class="dash-notif-panel" id="dash-notif-panel">
+            <div class="dash-notif-panel-head">
+              <h4>Notifications</h4>
+              <button id="dash-notif-mark-all">Mark all read</button>
+            </div>
+            <div id="dash-notif-list"><div class="dash-notif-empty">Loading…</div></div>
+          </div>
+        </div>
+
+        <a href="profile.html" class="dash-account">
+          <div class="dash-avatar" id="dash-avatar">—</div>
+          <div class="dash-account-info">
+            <div class="name" id="dash-account-name">—</div>
+            <div class="role" id="dash-account-role">Member</div>
+          </div>
+          <span class="chevron">▾</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="dash-content">
+      <div id="dash-loading">
+        <div class="loading-spin"></div>
+      </div>
+
+      <div id="dash-loaded-content" style="display:none;">
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="ic" style="background:rgba(240,169,61,0.14); color:var(--gold);">📅</div>
+            <div class="stat-body">
+              <div class="eyebrow-label">Member Since</div>
+              <div class="num" id="stat-member-since">—</div>
+              <div class="label">Proud member</div>
+            </div>
+          </div>
+          <div class="stat-card" id="attendance-status-card">
+            <div class="ic" style="background:rgba(76,122,78,0.14); color:var(--leaf);">✅</div>
+            <div class="stat-body">
+              <div class="eyebrow-label">Attendance Status</div>
+              <div class="num status-good" id="stat-attendance-status">—</div>
+              <div class="sub-status" id="stat-attendance-substatus"></div>
+            </div>
+          </div>
+          <a href="prayer-requests.html" class="stat-card stat-card-link">
+            <div class="ic" style="background:rgba(240,169,61,0.14); color:var(--gold);">🙏</div>
+            <div class="stat-body">
+              <div class="eyebrow-label">Prayer Requests</div>
+              <div class="num" id="stat-prayer-count">0</div>
+              <div class="label">Submitted</div>
+            </div>
+          </a>
+          <a href="testimonies.html" class="stat-card stat-card-link">
+            <div class="ic" style="background:rgba(232,97,63,0.14); color:var(--coral);">👥</div>
+            <div class="stat-body">
+              <div class="eyebrow-label">Testimonies</div>
+              <div class="num" id="stat-testimony-count">0</div>
+              <div class="label">Submitted</div>
+            </div>
+          </a>
+          <div class="stat-card">
+            <div class="ic" style="background:rgba(59,130,246,0.14); color:#3B82F6;">📆</div>
+            <div class="stat-body">
+              <div class="eyebrow-label">Next Event</div>
+              <div class="num" id="stat-upcoming-event" style="font-size:0.95rem; line-height:1.3;">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATTENDANCE NUMBER -->
+        <div class="attendance-hero">
+          <div>
+            <span class="eyebrow">Your Attendance Number</span>
+            <div class="num" id="member-attendance-number">—</div>
+            <p class="note">Tell the usher this number when you arrive at church.</p>
+          </div>
+          <a href="profile.html" class="btn btn-primary">View My Profile →</a>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="section-label">Quick Actions</div>
+        <div class="qa-grid">
+          <a href="prayer-requests.html" class="qa-card">
+            <div class="ic" style="background:rgba(240,169,61,0.14); color:var(--gold);">🙏</div>
+            <div><div class="qa-title">Prayer Request</div><div class="qa-sub">Submit a request</div></div>
+          </a>
+          <a href="testimonies.html" class="qa-card">
+            <div class="ic" style="background:rgba(232,97,63,0.14); color:var(--coral);">👥</div>
+            <div><div class="qa-title">Testimony</div><div class="qa-sub">Share your testimony</div></div>
+          </a>
+          <a href="sermons.html" class="qa-card">
+            <div class="ic" style="background:rgba(59,130,246,0.14); color:#3B82F6;">▶️</div>
+            <div><div class="qa-title">Watch Sermon</div><div class="qa-sub">Watch latest sermons</div></div>
+          </a>
+          <a href="give.html" class="qa-card">
+            <div class="ic" style="background:var(--coral); color:#fff;">❤️</div>
+            <div><div class="qa-title">Give</div><div class="qa-sub">Support the ministry</div></div>
+          </a>
+          <a href="events.html" class="qa-card">
+            <div class="ic" style="background:rgba(139,92,246,0.14); color:#8B5CF6;">📅</div>
+            <div><div class="qa-title">Events</div><div class="qa-sub">View upcoming events</div></div>
+          </a>
+        </div>
+
+        <div class="dash-two-col">
+          <div class="dash-col">
+            <div class="panel">
+              <div class="panel-head">
+                <h2>📣 Announcements</h2>
+                <a href="announcements.html" class="view-all">View All →</a>
+              </div>
+              <div id="dash-ann-panel">
+                <p class="panel-empty">Loading…</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>▶️ Latest Sermon</h2>
+                <a href="sermons.html" class="view-all">View All →</a>
+              </div>
+              <div id="dash-video-panel" class="sermon-strip">
+                <p class="panel-empty">Loading…</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-col">
+            <div class="panel-navy">
+              <div class="panel-head">
+                <h2>📖 Today's Bible Verse</h2>
+              </div>
+              <div id="dash-verse-panel">
+                <p style="opacity:0.75;">Loading…</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>📅 Upcoming Event</h2>
+                <a href="events.html" class="view-all">View All →</a>
+              </div>
+              <div id="dash-event-panel">
+                <p class="panel-empty">Loading…</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>💬 Feedback / Suggestion</h2>
+              </div>
+              <form id="dash-feedback-form" class="dash-feedback-form">
+                <div class="field">
+                  <textarea id="dash-feedback-message" placeholder="Share a quick thought, prayer note, or suggestion for the church…" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="dash-feedback-submit">Send</button>
+                <p class="form-status" id="dash-feedback-status"></p>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- ATTENDANCE DETAIL MODAL -->
+<div class="modal-overlay" id="attendance-detail-modal">
+  <div class="modal-box">
+    <button class="modal-close" id="attendance-detail-close">✕</button>
+    <h3>Your Attendance Overview</h3>
+    <p class="modal-sub">A summary of your participation at World Shakers Assembly.</p>
+    <div class="modal-stat-grid">
+      <div class="modal-stat"><div class="num" id="ad-attended">—</div><div class="label">Services Attended</div></div>
+      <div class="modal-stat"><div class="num" id="ad-testimonies">—</div><div class="label">Testimonies Shared</div></div>
+      <div class="modal-stat"><div class="num" id="ad-missed">—</div><div class="label">Services Missed</div></div>
+    </div>
+    <div class="modal-perf" id="ad-performance">Loading…</div>
+    <div>
+      <h4 style="font-size:0.85rem; color:var(--navy); margin-bottom:8px;">Missed Services</h4>
+      <div class="modal-missed-list" id="ad-missed-list"><p style="color:#999; font-size:0.82rem;">Loading…</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ABSENCE REASON MODAL -->
+<div class="modal-overlay" id="absence-reason-modal">
+  <div class="modal-box">
+    <button class="modal-close" id="absence-reason-close">✕</button>
+    <h3>We missed you 💛</h3>
+    <p class="modal-sub" id="absence-reason-date-label">Tell us why you weren't able to join us.</p>
+    <form id="absence-reason-form">
+      <div class="field">
+        <textarea id="absence-reason-text" rows="4" placeholder="e.g. I was unwell, traveling, at work…" required style="width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-family:'Inter'; resize:vertical;"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;" id="absence-reason-submit">Send</button>
+      <p class="form-status" id="absence-reason-status"></p>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="wsa-notifications.js"></script>
+<script>
+// supabase-client.js
+// Shared Supabase connection for the World Shakers Assembly Member Portal.
+// Loaded via CDN in each portal page before this script.
+
+const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+
+// Single shared client instance used across register.html, login.html, and dashboard.html
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+// dashboard.js
+// Guards the dashboard behind a login session, loads the member's profile,
+// and renders the welcome header + summary cards.
+// Requires supabase-client.js to be loaded first.
+
+async function guardDashboard(){
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if(!session){
+    window.location.href = 'login.html';
+    return null;
+  }
+  return session.user;
+}
+
+async function loadMemberProfile(userId){
+  const { data, error } = await supabaseClient
+    .from('members')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  if(error){
+    console.error('Error loading profile:', error);
+    return null;
+  }
+  return data;
+}
+
+function renderWelcome(member){
+  const nameEl = document.getElementById('welcome-name');
+  const subEl = document.getElementById('welcome-sub');
+  const firstName = member.full_name.split(' ')[0];
+  if(nameEl) nameEl.textContent = `Welcome back, ${firstName}! 👋`;
+  if(subEl){
+    subEl.textContent = `Here's what's happening at World Shakers Assembly today.`;
+  }
+}
+
+function renderAccountHeader(member){
+  const nameEl = document.getElementById('dash-account-name');
+  const roleEl = document.getElementById('dash-account-role');
+  const avatarEl = document.getElementById('dash-avatar');
+  if(nameEl) nameEl.textContent = member.full_name.split(' ')[0].toUpperCase();
+  if(roleEl) roleEl.textContent = member.leadership_role ? member.leadership_role.replace(/_/g, ' ') : 'Member';
+
+  if(avatarEl){
+    if(member.avatar_url){
+      avatarEl.innerHTML = `<img src="${escapeHTML(member.avatar_url)}" alt="${escapeHTML(member.full_name)}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    } else {
+      const initials = member.full_name.split(' ').filter(Boolean).slice(0,2).map(n => n[0]).join('').toUpperCase();
+      avatarEl.textContent = initials || '?';
+    }
+  }
+}
+
+// ============================================================
+// MULTI-ROLE SUPPORT FUNCTIONS (Stage 3)
+// ============================================================
+
+// Fetch all leadership roles for a member from member_leadership_roles table
+async function loadMemberRoles(memberId){
+  if(!memberId) return [];
+  try {
+    const { data, error } = await supabaseClient
+      .from('member_leadership_roles')
+      .select('leadership_role')
+      .eq('member_id', memberId)
+      .eq('is_active', true);
+    if(error) throw error;
+    return data ? data.map(r => r.leadership_role) : [];
+  } catch(err){
+    console.error('Error loading member roles:', err);
+    return [];
+  }
+}
+
+// Check if member has any of the given roles (multi-role support)
+function hasAnyRole(member, memberRoles, checkRoles){
+  if(member.role === 'admin') return true; // Admin always has access
+  if(!checkRoles || checkRoles.length === 0) return false;
+  if(!memberRoles) memberRoles = [];
+  return checkRoles.some(r => memberRoles.includes(r));
+}
+
+function revealAdminLinkIfAdmin(member){
+  const adminLink = document.getElementById('admin-nav-link');
+  if(adminLink && member.role === 'admin'){
+    adminLink.style.display = 'flex';
+    showManagementGroup();
+  }
+}
+
+function revealTreasurerLinkIfAuthorized(member, memberRoles){
+  const treasurerLink = document.getElementById('treasurer-nav-link');
+  if(treasurerLink && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['treasurer']))){
+    treasurerLink.style.display = 'flex';
+  }
+}
+
+function revealSecretaryLinkIfAuthorized(member, memberRoles){
+  const secretaryLink = document.getElementById('secretary-nav-link');
+  if(secretaryLink && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['general_secretary']))){
+    secretaryLink.style.display = 'flex';
+  }
+}
+
+function revealChiefUsherLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('chief-usher-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['chief_usher']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealUsherLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('usher-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['usher', 'chief_usher']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealMediaLeaderLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('media-leader-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['media_leader']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealMediaPersonnelLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('media-personnel-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['media_personnel', 'media_leader']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealPraiseLeaderLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('praise-leader-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['praise_leader']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealPraiseMemberLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('praise-member-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['praise_member', 'praise_leader']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealChiefProtocolLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('chief-protocol-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['chief_protocol']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealProtocolMemberLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('protocol-member-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['protocol_member', 'chief_protocol']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealSeniorPastorLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('senior-pastor-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['senior_pastor']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealPastorLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('pastor-nav-link');
+  // Only members actually assigned the "pastor" role get this link — Senior
+  // Pastor has oversight elsewhere but pastor.html itself only authorizes
+  // 'pastor' (+ admin), so showing this link to senior_pastor led to a
+  // dead-end "Pastor access only" screen.
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['pastor']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealMensLeaderLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('mens-leader-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['mens_leader']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealWomensLeaderLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('womens-leader-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['womens_leader']))){
+    link.style.display = 'flex';
+  }
+}
+
+function revealYouthLeaderLinkIfAuthorized(member, memberRoles){
+  const link = document.getElementById('youth-leader-nav-link');
+  if(link && (member.role === 'admin' || hasAnyRole(member, memberRoles, ['youth_leader']))){
+    link.style.display = 'flex';
+  }
+}
+
+// Shows the collapsible "Leaders Panel" group only if it contains at
+// least one visible link, and auto-opens it for convenience.
+function showManagementGroup(){
+  const group = document.getElementById('management-nav-group');
+  if(group) group.style.display = 'block';
+}
+
+function updateLeadersGroupVisibility(){
+  const group = document.getElementById('leaders-group');
+  if(!group) return;
+  const links = group.querySelectorAll('.leaders-group-links a');
+  const anyVisible = Array.from(links).some(a => a.style.display !== 'none');
+  if(anyVisible){
+    group.style.display = 'block';
+    group.open = true;
+    showManagementGroup();
+  }
+}
+
+async function renderSummaryCards(member){
+  const memberSinceEl = document.getElementById('stat-member-since');
+  const prayerCountEl = document.getElementById('stat-prayer-count');
+  const testimonyCountEl = document.getElementById('stat-testimony-count');
+
+  if(memberSinceEl){
+    memberSinceEl.textContent = member.member_since
+      ? new Date(member.member_since).toLocaleDateString('en-US', { month:'short', year:'numeric' })
+      : '—';
+  }
+
+  // These tables (prayer_requests / testimonies) will be added in a later
+  // pass — for now we show 0 rather than erroring if they don't exist yet.
+  try{
+    const { count: prayerCount } = await supabaseClient
+      .from('prayer_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('member_id', member.id);
+    if(prayerCountEl) prayerCountEl.textContent = prayerCount ?? 0;
+  }catch{
+    if(prayerCountEl) prayerCountEl.textContent = '0';
+  }
+
+  try{
+    const { count: testimonyCount } = await supabaseClient
+      .from('testimonies')
+      .select('*', { count: 'exact', head: true })
+      .eq('member_id', member.id);
+    if(testimonyCountEl) testimonyCountEl.textContent = testimonyCount ?? 0;
+  }catch{
+    if(testimonyCountEl) testimonyCountEl.textContent = '0';
+  }
+}
+
+function escapeHTML(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function loadAttendanceStatus(memberId){
+  const statusEl = document.getElementById('stat-attendance-status');
+  const subEl = document.getElementById('stat-attendance-substatus');
+  if(!statusEl) return;
+  try{
+    const { data, error } = await supabaseClient
+      .from('attendance_records')
+      .select('marked_at')
+      .eq('member_id', memberId)
+      .order('marked_at', { ascending: false })
+      .limit(1);
+    if(error) throw error;
+
+    if(!data || !data.length){
+      statusEl.textContent = 'New';
+      statusEl.className = 'num';
+      if(subEl) subEl.textContent = 'No check-ins yet';
+      return;
+    }
+
+    const lastMarked = new Date(data[0].marked_at);
+    const daysSince = Math.floor((Date.now() - lastMarked.getTime()) / (1000 * 60 * 60 * 24));
+
+    if(daysSince <= 14){
+      statusEl.textContent = 'Good';
+      statusEl.className = 'num status-good';
+      if(subEl) subEl.textContent = 'Keep it up!';
+    } else if(daysSince <= 30){
+      statusEl.textContent = 'Fair';
+      statusEl.className = 'num';
+      if(subEl) subEl.textContent = `Last seen ${daysSince}d ago`;
+    } else {
+      statusEl.textContent = 'Away';
+      statusEl.className = 'num';
+      if(subEl) subEl.textContent = `Last seen ${daysSince}d ago`;
+    }
+  }catch(err){
+    console.error('Error loading attendance status:', err);
+    statusEl.textContent = '—';
+  }
+}
+
+// ============================================================
+// ATTENDANCE DETAIL MODAL (click the attendance status card)
+// ============================================================
+function openModal(id){ document.getElementById(id)?.classList.add('open'); }
+function closeModal(id){ document.getElementById(id)?.classList.remove('open'); }
+
+function initAttendanceDetailModal(memberId){
+  const card = document.getElementById('attendance-status-card');
+  card?.addEventListener('click', () => {
+    openModal('attendance-detail-modal');
+    loadAttendanceDetail(memberId);
+  });
+  document.getElementById('attendance-detail-close')?.addEventListener('click', () => closeModal('attendance-detail-modal'));
+  document.getElementById('attendance-detail-modal')?.addEventListener('click', (e) => {
+    if(e.target.id === 'attendance-detail-modal') closeModal('attendance-detail-modal');
+  });
+}
+
+async function loadAttendanceDetail(memberId){
+  try{
+    const [{ data: records, error: recError }, { count: testimonyCount, error: testError }, { data: reasons, error: reasonError }, { count: totalServices, error: svcError }] = await Promise.all([
+      supabaseClient.from('attendance_records').select('marked_at').eq('member_id', memberId),
+      supabaseClient.from('testimonies').select('*', { count:'exact', head:true }).eq('member_id', memberId),
+      supabaseClient.from('absence_reasons').select('service_date, reason').eq('member_id', memberId).order('service_date', { ascending:false }),
+      supabaseClient.from('service_closeouts').select('*', { count:'exact', head:true })
+    ]);
+    if(recError) throw recError;
+    if(testError) throw testError;
+    if(reasonError) throw reasonError;
+    if(svcError) throw svcError;
+
+    // Count distinct calendar days attended
+    const attendedDates = new Set((records || []).map(r => new Date(r.marked_at).toISOString().split('T')[0]));
+    const attended = attendedDates.size;
+    const total = totalServices || 0;
+    const reasonsGiven = reasons || [];
+    const missedWithReason = reasonsGiven.length;
+    const missedTotal = Math.max(total - attended, 0);
+    const missedWithoutReason = Math.max(missedTotal - missedWithReason, 0);
+
+    document.getElementById('ad-attended').textContent = attended;
+    document.getElementById('ad-testimonies').textContent = testimonyCount ?? 0;
+    document.getElementById('ad-missed').textContent = missedTotal;
+
+    const rate = total ? Math.round((attended / total) * 100) : null;
+    const perfEl = document.getElementById('ad-performance');
+    if(rate === null){
+      perfEl.className = 'modal-perf';
+      perfEl.textContent = 'Not enough service data yet to calculate a performance score.';
+    } else if(rate >= 75){
+      perfEl.className = 'modal-perf tier-good';
+      perfEl.textContent = `Excellent! You've attended ${rate}% of services. Keep it up! 🙌`;
+    } else if(rate >= 50){
+      perfEl.className = 'modal-perf tier-fair';
+      perfEl.textContent = `Good — you've attended ${rate}% of services. Try not to miss church!`;
+    } else {
+      perfEl.className = 'modal-perf tier-low';
+      perfEl.textContent = `You've attended ${rate}% of services. We'd love to see you more — don't miss church! 💛`;
+    }
+
+    const listEl = document.getElementById('ad-missed-list');
+    if(!reasonsGiven.length && missedWithoutReason === 0){
+      listEl.innerHTML = '<p style="color:#999; font-size:0.82rem;">No missed services on record.</p>';
+    } else {
+      let html = reasonsGiven.map(r => `
+        <div class="modal-missed-item">
+          <span class="d">${new Date(r.service_date + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</span>
+          <span class="r">${escapeHTML(r.reason)}</span>
+        </div>
+      `).join('');
+      if(missedWithoutReason > 0){
+        html += `<div class="modal-missed-item"><span class="d">${missedWithoutReason} other service(s)</span><span class="r">No reason given</span></div>`;
+      }
+      listEl.innerHTML = html;
+    }
+  }catch(err){
+    console.error('Error loading attendance detail:', err);
+    document.getElementById('ad-performance').textContent = 'Could not load your attendance details right now.';
+  }
+}
+
+// ============================================================
+// ABSENCE REASON MODAL (triggered via ?absence=1&date=YYYY-MM-DD)
+// ============================================================
+function initAbsenceReasonFlow(memberId){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('absence') !== '1') return;
+  const date = params.get('date');
+  if(!date) return;
+
+  const dateLabel = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+  document.getElementById('absence-reason-date-label').textContent = `We missed you on ${dateLabel}. What kept you away?`;
+  openModal('absence-reason-modal');
+
+  // Clean the URL so refreshing doesn't reopen the modal
+  window.history.replaceState({}, '', window.location.pathname);
+
+  document.getElementById('absence-reason-close')?.addEventListener('click', () => closeModal('absence-reason-modal'));
+
+  document.getElementById('absence-reason-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const reasonText = document.getElementById('absence-reason-text').value.trim();
+    const statusEl = document.getElementById('absence-reason-status');
+    const submitBtn = document.getElementById('absence-reason-submit');
+    if(!reasonText) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    try{
+      const { error } = await supabaseClient
+        .from('absence_reasons')
+        .upsert({ member_id: memberId, service_date: date, reason: reasonText }, { onConflict: 'member_id,service_date' });
+      if(error) throw error;
+      statusEl.textContent = 'Thank you for letting us know — we appreciate it!';
+      statusEl.style.color = 'var(--leaf)';
+      setTimeout(() => closeModal('absence-reason-modal'), 1600);
+    }catch(err){
+      console.error('Error submitting absence reason:', err);
+      statusEl.textContent = 'Something went wrong — please try again.';
+      statusEl.style.color = 'var(--coral)';
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send';
+    }
+  });
+}
+
+function showToast(message, type = 'success'){
+  let stack = document.querySelector('.toast-stack');
+  if(!stack){
+    stack = document.createElement('div');
+    stack.className = 'toast-stack';
+    document.body.appendChild(stack);
+  }
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  stack.appendChild(toast);
+  setTimeout(() => toast.remove(), 4500);
+}
+
+function memberAge(member){
+  if(!member.date_of_birth) return null;
+  const dob = new Date(member.date_of_birth);
+  if(isNaN(dob)) return null;
+  return Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+}
+
+function announcementAppliesToMember(ann, member){
+  const audience = ann.audience || 'all';
+  if(audience === 'all') return true;
+  if(audience === 'men') return member.gender === 'male';
+  if(audience === 'women') return member.gender === 'female';
+  if(audience === 'youth'){ const age = memberAge(member); return age !== null && age >= 18 && age <= 45; }
+  if(audience === 'leaders') return !!member.leadership_role || member.role === 'admin';
+  return true;
+}
+
+async function loadDashAnnouncements(member){
+  const panel = document.getElementById('dash-ann-panel');
+  if(!panel) return;
+  try{
+    const { data, error } = await supabaseClient
+      .from('announcements')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(8);
+    if(error) throw error;
+    const visible = (data || []).filter(a => announcementAppliesToMember(a, member)).slice(0, 3);
+    if(!visible.length){
+      panel.innerHTML = '<p class="panel-empty">No announcements yet — check back soon.</p>';
+      return;
+    }
+    panel.innerHTML = visible.map(a => `
+      <div class="ann-item">
+        <h4>${escapeHTML(a.title || 'Announcement')}</h4>
+        <p>${escapeHTML(a.body || '')}</p>
+        <time>${a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }) : ''}</time>
+      </div>
+    `).join('');
+  }catch(err){
+    console.error('Error loading announcements:', err);
+    panel.innerHTML = '<p class="panel-empty">Could not load announcements right now.</p>';
+  }
+}
+
+function pickTodaysVerse(verses){
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`;
+  let hash = 0;
+  for(let i = 0; i < dateStr.length; i++){
+    hash = (hash * 31 + dateStr.charCodeAt(i)) >>> 0;
+  }
+  const index = hash % verses.length;
+  return verses[index];
+}
+
+async function loadDashVerse(){
+  const panel = document.getElementById('dash-verse-panel');
+  if(!panel) return;
+  try{
+    const { data, error } = await supabaseClient.from('bible_verses').select('*');
+    if(error) throw error;
+    if(!data || !data.length){
+      panel.innerHTML = '<p style="opacity:0.75;">No verse available yet.</p>';
+      return;
+    }
+    const verse = pickTodaysVerse(data);
+    panel.innerHTML = `
+      <p class="verse-text">“${escapeHTML(verse.verse_text)}”</p>
+      <p class="verse-ref">${escapeHTML(`${verse.book} ${verse.chapter}:${verse.verse}`)}</p>
+    `;
+  }catch(err){
+    console.error('Error loading verse:', err);
+    panel.innerHTML = '<p style="opacity:0.75;">Could not load today\'s verse.</p>';
+  }
+}
+
+async function loadDashLatestVideo(){
+  const panel = document.getElementById('dash-video-panel');
+  if(!panel) return;
+  const YT_API_KEY = 'AIzaSyAPxatRU9Hgi91eRkoMm13ZsgipqUE88VM';
+  const YT_CHANNEL_ID = 'UCZBpUiurt8UZYuXz5taA7Zg';
+  try{
+    const chRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${YT_CHANNEL_ID}&key=${YT_API_KEY}`);
+    const chData = await chRes.json();
+    if(chData.error) throw new Error(chData.error.message);
+    const uploadsPlaylistId = chData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+    if(!uploadsPlaylistId) throw new Error('No uploads playlist found.');
+
+    const plRes = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=1&key=${YT_API_KEY}`);
+    const plData = await plRes.json();
+    if(plData.error) throw new Error(plData.error.message);
+    const item = (plData.items || [])[0];
+    if(!item){
+      panel.innerHTML = '<p class="panel-empty">No sermons found yet.</p>';
+      return;
+    }
+    const videoId = item.snippet.resourceId.videoId;
+    const title = escapeHTML(item.snippet.title || 'Untitled');
+    const publishedAt = item.snippet.publishedAt
+      ? new Date(item.snippet.publishedAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+      : '';
+    const thumb = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '';
+    panel.innerHTML = `
+      <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener" class="thumb">
+        <img src="${thumb}" alt="${title}">
+        <span class="play-icon">▶</span>
+      </a>
+      <div class="info">
+        <div class="sermon-title">${title}</div>
+        <div class="sermon-meta">${publishedAt}</div>
+      </div>
+      <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener" class="btn btn-primary">Watch Now</a>
+    `;
+  }catch(err){
+    console.error('YouTube fetch error:', err);
+    panel.innerHTML = `<p class="panel-empty">Visit our <a href="sermons.html" style="color:var(--coral); text-decoration:underline;">Sermons page</a> to watch.</p>`;
+  }
+}
+
+async function loadDashUpcomingEvent(){
+  const statEl = document.getElementById('stat-upcoming-event');
+  const panelEl = document.getElementById('dash-event-panel');
+
+  try{
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await supabaseClient
+      .from('events')
+      .select('*')
+      .gte('event_date', today)
+      .order('event_date')
+      .limit(1);
+
+    if(error) throw error;
+
+    if(!data || !data.length){
+      if(statEl) statEl.textContent = '—';
+      if(panelEl) panelEl.innerHTML = '<p class="panel-empty">No upcoming events scheduled yet.</p>';
+      return;
+    }
+
+    const event = data[0];
+    const eventDate = new Date(event.event_date);
+    const shortDate = eventDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+
+    if(statEl){
+      statEl.innerHTML = `<a href="events.html" style="color:var(--navy); text-decoration:underline; font-weight:700;">${escapeHTML(event.title)}</a><br><span style="font-size:0.75rem; color:rgba(27,35,51,0.55); font-weight:400;">${shortDate}</span>`;
+    }
+
+    if(panelEl){
+      const monthShort = eventDate.toLocaleDateString('en-US', { month:'short' }).toUpperCase();
+      const dayNum = eventDate.getDate();
+      panelEl.innerHTML = `
+        <div class="event-card">
+          ${event.flyer_url ? `<img src="${escapeHTML(event.flyer_url)}" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:10px; flex-shrink:0;">` : `<div class="event-date-badge"><span class="mon">${monthShort}</span><span class="day">${dayNum}</span></div>`}
+          <div class="event-info">
+            <h4>${escapeHTML(event.title)}</h4>
+            <p>${event.event_time ? `<span class="event-time">${escapeHTML(event.event_time)}</span> · ` : ''}${escapeHTML(event.location || '')}</p>
+          </div>
+        </div>
+      `;
+    }
+  }catch(err){
+    console.error('Error loading upcoming event:', err);
+    if(statEl) statEl.textContent = '—';
+    if(panelEl) panelEl.innerHTML = '<p class="panel-empty">Could not load upcoming events.</p>';
+  }
+}
+
+function initDashFeedbackForm(userId){
+  const form = document.getElementById('dash-feedback-form');
+  if(!form) return;
+  const statusEl = document.getElementById('dash-feedback-status');
+  const submitBtn = document.getElementById('dash-feedback-submit');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = document.getElementById('dash-feedback-message').value.trim();
+    if(!message){
+      statusEl.textContent = 'Please write a message before sending.';
+      statusEl.className = 'form-status error';
+      return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    try{
+      const { error } = await supabaseClient.from('feedback').insert({
+        member_id: userId,
+        message,
+        suggestions: '',
+        rating: null
+      });
+      if(error) throw error;
+      showToast('Thank you for your feedback!', 'success');
+      statusEl.textContent = 'Thank you — your feedback has been sent.';
+      statusEl.className = 'form-status success';
+      form.reset();
+    }catch(err){
+      console.error('Feedback submit error:', err);
+      statusEl.textContent = err.message || 'Something went wrong. Please try again.';
+      statusEl.className = 'form-status error';
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send';
+    }
+  });
+}
+
+async function loadMemberAttendanceNumber(memberId){
+  try{
+    const { data, error } = await supabaseClient
+      .from('attendance_numbers')
+      .select('unique_number')
+      .eq('member_id', memberId)
+      .eq('is_active', true)
+      .single();
+    
+    if(error || !data){
+      document.getElementById('member-attendance-number').textContent = '—';
+      return;
+    }
+    
+    document.getElementById('member-attendance-number').textContent = data.unique_number;
+  }catch(err){
+    console.error('Error loading attendance number:', err);
+  }
+}
+
+function initSidebarToggle(){
+  const toggle = document.getElementById('dash-menu-toggle');
+  const sidebar = document.getElementById('dash-sidebar');
+  if(toggle && sidebar){
+    toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  }
+}
+
+function initLogout(){
+  const logoutBtn = document.getElementById('logout-btn');
+  if(!logoutBtn) return;
+  logoutBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+  });
+}
+
+function renderDashNotifItem(n){
+  const timeAgo = n.created_at ? new Date(n.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+  return `
+    <div class="dash-notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+      <h5>${escapeHTML(n.title || 'Notification')}</h5>
+      <p>${escapeHTML(n.message || '')}</p>
+      <time>${timeAgo}</time>
+    </div>
+  `;
+}
+
+async function refreshDashNotifPanel(){
+  const list = document.getElementById('dash-notif-list');
+  if(!list || !window.wsa_notif) return;
+  const notifs = window.wsa_notif.notifications;
+  list.innerHTML = notifs.length
+    ? notifs.slice(0, 20).map(renderDashNotifItem).join('')
+    : '<div class="dash-notif-empty">You have no notifications yet.</div>';
+
+  list.querySelectorAll('.dash-notif-item').forEach(item => {
+    item.addEventListener('click', async () => {
+      const id = item.dataset.id;
+      await window.wsa_notif.markAsRead(id);
+      const notif = window.wsa_notif.notifications.find(n => n.id === id);
+      if(notif && notif.action_url){
+        window.location.href = notif.action_url;
+      } else {
+        item.classList.remove('unread');
+      }
+    });
+  });
+}
+
+async function initNotifications(){
+  const btn = document.getElementById('dash-notif-btn');
+  const panel = document.getElementById('dash-notif-panel');
+  const markAllBtn = document.getElementById('dash-notif-mark-all');
+  if(!btn || !panel) return;
+
+  window.wsa_notif = new WSANotifications(supabaseClient);
+  await window.wsa_notif.init();
+  window.wsa_notif.subscribe();
+  window.wsa_notif.showBadge();
+  await refreshDashNotifPanel();
+
+  btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    panel.classList.toggle('open');
+    if(panel.classList.contains('open')){
+      await window.wsa_notif.load();
+      window.wsa_notif.showBadge();
+      await refreshDashNotifPanel();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if(!panel.contains(e.target) && e.target !== btn){
+      panel.classList.remove('open');
+    }
+  });
+
+  markAllBtn?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await window.wsa_notif.markAllAsRead();
+    await refreshDashNotifPanel();
+  });
+}
+
+function initQuickSearch(){
+  const input = document.getElementById('dash-quick-search');
+  const results = document.getElementById('dash-search-results');
+  if(!input || !results) return;
+
+  const links = Array.from(document.querySelectorAll('.dash-nav a[data-nav-label]')).map(a => ({
+    label: a.dataset.navLabel,
+    href: a.getAttribute('href')
+  }));
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if(!q){
+      results.style.display = 'none';
+      results.innerHTML = '';
+      return;
+    }
+    const matches = links.filter(l => l.label.toLowerCase().includes(q));
+    if(!matches.length){
+      results.innerHTML = '<a style="color:rgba(27,35,51,0.5); cursor:default;">No matching page</a>';
+    } else {
+      results.innerHTML = matches.map(l => `<a href="${l.href}">${escapeHTML(l.label)}</a>`).join('');
+    }
+    results.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if(!input.contains(e.target) && !results.contains(e.target)){
+      results.style.display = 'none';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  initSidebarToggle();
+  initLogout();
+
+  const user = await guardDashboard();
+  if(!user) return;
+
+  const member = await loadMemberProfile(user.id);
+  const memberRoles = await loadMemberRoles(user.id); // Stage 3: Load all roles
+  const loadingEl = document.getElementById('dash-loading');
+  const contentEl = document.getElementById('dash-loaded-content');
+
+  if(!member){
+    if(loadingEl) loadingEl.innerHTML = '<p style="text-align:center; color:var(--coral);">We could not load your profile. Please try logging in again.</p>';
+    return;
+  }
+
+  renderWelcome(member);
+  renderAccountHeader(member);
+  revealAdminLinkIfAdmin(member);
+  revealTreasurerLinkIfAuthorized(member, memberRoles);
+  revealSecretaryLinkIfAuthorized(member, memberRoles);
+  revealChiefUsherLinkIfAuthorized(member, memberRoles);
+  revealUsherLinkIfAuthorized(member, memberRoles);
+  revealMediaLeaderLinkIfAuthorized(member, memberRoles);
+  revealMediaPersonnelLinkIfAuthorized(member, memberRoles);
+  revealPraiseLeaderLinkIfAuthorized(member, memberRoles);
+  revealPraiseMemberLinkIfAuthorized(member, memberRoles);
+  revealChiefProtocolLinkIfAuthorized(member, memberRoles);
+  revealProtocolMemberLinkIfAuthorized(member, memberRoles);
+  revealSeniorPastorLinkIfAuthorized(member, memberRoles);
+  revealPastorLinkIfAuthorized(member, memberRoles);
+  revealMensLeaderLinkIfAuthorized(member, memberRoles);
+  revealWomensLeaderLinkIfAuthorized(member, memberRoles);
+  revealYouthLeaderLinkIfAuthorized(member, memberRoles);
+  updateLeadersGroupVisibility();
+  await renderSummaryCards(member);
+  await loadAttendanceStatus(user.id);
+  await loadMemberAttendanceNumber(user.id);
+  initDashFeedbackForm(user.id);
+
+  if(loadingEl) loadingEl.style.display = 'none';
+  if(contentEl) contentEl.style.display = 'block';
+
+  loadDashAnnouncements(member);
+  loadDashVerse();
+  loadDashLatestVideo();
+  loadDashUpcomingEvent();
+  initNotifications();
+  initAttendanceDetailModal(user.id);
+  initAbsenceReasonFlow(user.id);
+});
+
+</script>
+</body>
+</html>
