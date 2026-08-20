@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Shakers Bible College — Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#12213E;
+  --navy-deep:#0B1730;
+  --gold:#F0A93D;
+  --coral:#E8613F;
+  --cream:#FBF7F0;
+  --leaf:#4C7A4E;
+  --ink:#1B2333;
+  --line: rgba(18,33,62,0.12);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--cream); line-height:1.55;}
+h1,h2,h3,.display{font-family:'Sora', sans-serif; font-weight:800; letter-spacing:-0.02em;}
+.mono{font-family:'Space Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; font-size:0.75rem;}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+.wrap{max-width:640px; margin:0 auto; padding:0 24px;}
+
+nav{position:sticky; top:0; z-index:50; background:rgba(251,247,240,0.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+nav .wrap{max-width:1120px; display:flex; align-items:center; justify-content:space-between; height:72px;}
+.brand{display:flex; align-items:center; gap:10px; font-family:'Sora'; font-weight:800; font-size:1.05rem;}
+.brand .mark{width:40px; height:40px; border-radius:8px; object-fit:contain;}
+.back-link{font-size:0.88rem; font-weight:600; color:var(--navy); opacity:0.75;}
+.back-link:hover{opacity:1;}
+
+.page-head{text-align:center; padding:52px 0 30px;}
+.page-head .mono{color:var(--coral);}
+.page-head h1{font-size:2.1rem; margin-top:10px;}
+.page-head p{color:rgba(27,35,51,0.65); margin-top:12px; font-size:0.98rem;}
+
+form{display:flex; flex-direction:column; gap:16px; background:white; border:1px solid var(--line); border-radius:16px; padding:28px; margin-bottom:60px;}
+.field label{display:block; font-size:0.82rem; font-weight:600; margin-bottom:6px; color:rgba(27,35,51,0.7);}
+.field input, .field select, .field textarea{
+  width:100%; padding:13px 16px; border-radius:10px; border:1px solid var(--line);
+  font-family:'Inter'; font-size:0.95rem; background:white; color:var(--ink);
+}
+.field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--gold); outline-offset:1px;}
+.field-error{color:var(--coral); font-size:0.8rem; margin-top:6px; display:none;}
+.field.invalid input, .field.invalid select{border-color:var(--coral);}
+.field.invalid .field-error{display:block;}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:520px){ .field-row{grid-template-columns:1fr;} }
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:14px 22px; border-radius:999px; font-weight:700; font-size:0.95rem; border:none; cursor:pointer; transition:transform .15s ease, opacity .15s ease;}
+.btn:hover{transform:translateY(-1px);}
+.btn:disabled{opacity:0.6; cursor:default; transform:none;}
+.btn-primary{background:linear-gradient(90deg,var(--gold),var(--coral)); color:white;}
+.btn-outline{background:transparent; color:var(--navy); border:1px solid var(--line);}
+.form-status{font-size:0.85rem; margin-top:4px; display:none;}
+.form-status.error{display:block; color:var(--coral);}
+
+/* ---------- Thank-you / card screen ---------- */
+#thankyou-screen{display:none; text-align:center; padding-bottom:60px;}
+#thankyou-screen .check{font-size:2.6rem; margin-bottom:6px;}
+#thankyou-screen h2{font-size:1.6rem; margin-bottom:10px;}
+#thankyou-screen p{color:rgba(27,35,51,0.7); max-width:480px; margin:0 auto 22px;}
+.notice-box{background:rgba(76,122,78,0.08); border:1px solid rgba(76,122,78,0.25); color:#345636; border-radius:12px; padding:16px 18px; font-size:0.88rem; text-align:left; margin:0 auto 24px; max-width:480px;}
+.notice-box strong{color:var(--leaf);}
+#card-canvas{width:100%; max-width:460px; border-radius:14px; box-shadow:0 12px 32px rgba(18,33,62,0.18); margin:0 auto 24px; display:block;}
+.thankyou-actions{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+
+.toast-stack{position:fixed; top:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:10px;}
+.toast{padding:12px 18px; border-radius:10px; color:white; font-size:0.88rem; font-weight:600; box-shadow:0 8px 20px rgba(0,0,0,0.15); animation:toastIn .2s ease;}
+.toast.error{background:var(--coral);}
+.toast.success{background:var(--leaf);}
+@keyframes toastIn{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><img src="assets/logo.png" alt="World Shakers Assembly logo" class="mark" onerror="this.style.display='none'"> World Shakers Assembly</div>
+    <a href="index.html" class="back-link">← Back to Homepage</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div id="form-screen">
+    <div class="page-head">
+      <span class="mono">World Shakers Bible College</span>
+      <h1>Register — it's free</h1>
+      <p>Fill in your details below. Once submitted, you'll receive a free membership card to download and keep for future use.</p>
+    </div>
+
+    <form id="bc-form" novalidate>
+      <div class="field" id="field-fullName">
+        <label for="bc-fullName">Full Name</label>
+        <input type="text" id="bc-fullName" name="fullName" placeholder="Your full name" required>
+        <div class="field-error">Please enter your full name.</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" id="field-phone">
+          <label for="bc-phone">Phone Number</label>
+          <input type="tel" id="bc-phone" name="phone" placeholder="e.g., 0712 345 678" required>
+          <div class="field-error">Please enter a phone number.</div>
+        </div>
+        <div class="field" id="field-email">
+          <label for="bc-email">Email</label>
+          <input type="email" id="bc-email" name="email" placeholder="you@email.com" required>
+          <div class="field-error">Please enter a valid email address.</div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" id="field-gender">
+          <label for="bc-gender">Gender</label>
+          <select id="bc-gender" name="gender" required>
+            <option value="" disabled selected>Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+          <div class="field-error">Please select a gender.</div>
+        </div>
+        <div class="field" id="field-dob">
+          <label for="bc-dob">Date of Birth</label>
+          <input type="date" id="bc-dob" name="dob" required>
+          <div class="field-error">Please enter your date of birth.</div>
+        </div>
+      </div>
+
+      <div class="field" id="field-address">
+        <label for="bc-address">Address / Area</label>
+        <input type="text" id="bc-address" name="address" placeholder="e.g., Chang'ombe Extension, Dodoma" required>
+        <div class="field-error">Please enter your address or area.</div>
+      </div>
+
+      <div class="field" id="field-occupation">
+        <label for="bc-occupation">Occupation (optional)</label>
+        <input type="text" id="bc-occupation" name="occupation" placeholder="e.g., Teacher, Student, Trader">
+      </div>
+
+      <div class="form-status" id="bc-form-status"></div>
+
+      <button type="submit" class="btn btn-primary">Register Now</button>
+    </form>
+  </div>
+
+  <div id="thankyou-screen">
+    <div class="check">🎉</div>
+    <h2>Thank you for registering!</h2>
+    <p>Your registration for World Shakers Bible College is complete.</p>
+
+    <div class="notice-box">
+      <strong>What happens next:</strong> You will soon be notified via the phone number and/or email you provided. Please keep your membership card below well — you'll need it for future use.
+    </div>
+
+    <canvas id="card-canvas" width="1000" height="600"></canvas>
+
+    <div class="thankyou-actions">
+      <button type="button" class="btn btn-primary" id="download-card-btn">⬇️ Download My Membership Card</button>
+      <a href="index.html" class="btn btn-outline">Back to Homepage</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://ufcicqrkyeunrgcpkcqg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY2ljcXJreWV1bnJnY3BrY3FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDExNjAsImV4cCI6MjA5OTI3NzE2MH0.K25vUGcGDyn0IwBogJ7Onr4cmwfNRJC8kcZjTk58prQ';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function showToast(message, type = 'success'){
+  let stack = document.querySelector('.toast-stack');
+  if(!stack){
+    stack = document.createElement('div');
+    stack.className = 'toast-stack';
+    document.body.appendChild(stack);
+  }
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  stack.appendChild(toast);
+  setTimeout(() => toast.remove(), 4500);
+}
+function setFormStatus(el, message, type){
+  if(!el) return;
+  el.textContent = message;
+  el.className = `form-status ${type}`;
+}
+function markInvalid(fieldEl, message){
+  fieldEl.classList.add('invalid');
+  const errorEl = fieldEl.querySelector('.field-error');
+  if(errorEl && message) errorEl.textContent = message;
+}
+function clearInvalid(fieldEl){
+  fieldEl.classList.remove('invalid');
+}
+
+function generateMembershipNumber(){
+  const year = new Date().getFullYear();
+  const rand = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `WSBC-${year}-${rand}`;
+}
+
+async function drawMembershipCard({ fullName, membershipNumber, registeredOn }){
+  const canvas = document.getElementById('card-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, '#0B1730');
+  grad.addColorStop(1, '#12213E');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Gold accent stripe
+  const stripeGrad = ctx.createLinearGradient(0, 0, W, 0);
+  stripeGrad.addColorStop(0, '#F0A93D');
+  stripeGrad.addColorStop(1, '#E8613F');
+  ctx.fillStyle = stripeGrad;
+  ctx.fillRect(0, 0, W, 14);
+  ctx.fillRect(0, H - 14, W, 14);
+
+  ctx.fillStyle = '#FBF7F0';
+  ctx.textBaseline = 'alphabetic';
+
+  // Header
+  ctx.font = '700 22px Sora, sans-serif';
+  ctx.fillText('WORLD SHAKERS ASSEMBLY', 50, 80);
+  ctx.font = '400 15px Space Mono, monospace';
+  ctx.fillStyle = '#F0A93D';
+  ctx.fillText('BIBLE COLLEGE — MEMBERSHIP CARD', 50, 108);
+
+  // Divider
+  ctx.strokeStyle = 'rgba(251,247,240,0.25)';
+  ctx.beginPath(); ctx.moveTo(50, 130); ctx.lineTo(W - 50, 130); ctx.stroke();
+
+  // Name
+  ctx.fillStyle = '#FBF7F0';
+  ctx.font = '400 14px Inter, sans-serif';
+  ctx.fillText('NAME', 50, 200);
+  ctx.font = '800 34px Sora, sans-serif';
+  ctx.fillText(fullName.toUpperCase(), 50, 240);
+
+  // Membership number
+  ctx.font = '400 14px Inter, sans-serif';
+  ctx.fillText('MEMBERSHIP NUMBER', 50, 320);
+  ctx.font = '700 26px Space Mono, monospace';
+  ctx.fillStyle = '#F0A93D';
+  ctx.fillText(membershipNumber, 50, 355);
+
+  // Registered date
+  ctx.fillStyle = '#FBF7F0';
+  ctx.font = '400 14px Inter, sans-serif';
+  ctx.fillText('REGISTERED', 50, 420);
+  ctx.font = '600 18px Inter, sans-serif';
+  ctx.fillText(registeredOn, 50, 448);
+
+  // Footer tagline
+  ctx.font = 'italic 400 14px Inter, sans-serif';
+  ctx.fillStyle = 'rgba(251,247,240,0.6)';
+  ctx.fillText('"The Home of Giants" — Dodoma, Tanzania', 50, H - 40);
+}
+
+function initBibleCollegeForm(){
+  const form = document.getElementById('bc-form');
+  const statusEl = document.getElementById('bc-form-status');
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setFormStatus(statusEl, '', '');
+
+    const fullName = form.fullName.value.trim();
+    const phone = form.phone.value.trim();
+    const email = form.email.value.trim();
+    const gender = form.gender.value;
+    const dob = form.dob.value;
+    const address = form.address.value.trim();
+    const occupation = form.occupation.value.trim();
+
+    let valid = true;
+    [...form.querySelectorAll('.field')].forEach(f => clearInvalid(f));
+
+    if(!fullName){ markInvalid(document.getElementById('field-fullName')); valid = false; }
+    if(!phone){ markInvalid(document.getElementById('field-phone')); valid = false; }
+    if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ markInvalid(document.getElementById('field-email')); valid = false; }
+    if(!gender){ markInvalid(document.getElementById('field-gender')); valid = false; }
+    if(!dob){ markInvalid(document.getElementById('field-dob')); valid = false; }
+    if(!address){ markInvalid(document.getElementById('field-address')); valid = false; }
+
+    if(!valid) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Registering…';
+
+    const membershipNumber = generateMembershipNumber();
+
+    try{
+      const { error } = await supabaseClient.from('bible_college_candidates').insert({
+        membership_number: membershipNumber,
+        full_name: fullName,
+        phone,
+        email: email || null,
+        gender,
+        date_of_birth: dob || null,
+        address,
+        occupation: occupation || null
+      });
+      if(error) throw error;
+
+      const registeredOn = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+      await drawMembershipCard({ fullName, membershipNumber, registeredOn });
+
+      document.getElementById('form-screen').style.display = 'none';
+      document.getElementById('thankyou-screen').style.display = 'block';
+      window.scrollTo({ top:0, behavior:'smooth' });
+
+      document.getElementById('download-card-btn').addEventListener('click', () => {
+        const canvas = document.getElementById('card-canvas');
+        const link = document.createElement('a');
+        link.download = `WSBC-Membership-Card-${membershipNumber}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }catch(err){
+      console.error(err);
+      setFormStatus(statusEl, 'Could not complete registration. Please check your details and try again.', 'error');
+      showToast('Registration failed. Please try again.', 'error');
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Register Now';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initBibleCollegeForm);
+</script>
+</body>
+</html>
