@@ -44,9 +44,11 @@ module.exports = async function handler(req, res) {
     BEEM_API_KEY,
     BEEM_SECRET_KEY,
     BEEM_SENDER_NAME,
-    SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY,
   } = process.env;
+
+  // Accept either naming — this project already has Supabase vars prefixed with VITE_
+  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
   if (!BEEM_API_KEY || !BEEM_SECRET_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     res.status(500).json({ error: 'Server is missing required environment variables.' });
