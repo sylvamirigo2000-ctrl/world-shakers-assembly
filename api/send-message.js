@@ -51,7 +51,12 @@ module.exports = async function handler(req, res) {
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
   if (!BEEM_API_KEY || !BEEM_SECRET_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    res.status(500).json({ error: 'Server is missing required environment variables.' });
+    const missing = [];
+    if (!BEEM_API_KEY) missing.push('BEEM_API_KEY');
+    if (!BEEM_SECRET_KEY) missing.push('BEEM_SECRET_KEY');
+    if (!SUPABASE_URL) missing.push('SUPABASE_URL (or VITE_SUPABASE_URL)');
+    if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY (or VITE_SUPABASE_SERVICE_ROLE_KEY)');
+    res.status(500).json({ error: 'Server is missing required environment variables: ' + missing.join(', ') });
     return;
   }
 
