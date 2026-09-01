@@ -72,7 +72,7 @@ module.exports = async function handler(req, res) {
 
   const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token);
   if (userErr || !userData || !userData.user) {
-    res.status(401).json({ error: 'Invalid or expired session.' });
+    res.status(401).json({ error: 'Invalid or expired session: ' + (userErr ? userErr.message : 'no user returned') });
     return;
   }
   const callerId = userData.user.id;
